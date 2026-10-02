@@ -1,8 +1,9 @@
-import { C, esc, pct, sign, signColor, tierBadge, raceBadge, raceLabel, formPills, sparkline, sample, go, fmtD, TIERS, TIER_COLOR, addDays, todayKST } from './util.js?v=20261002k';
-import { seasonTable, proTable, sides } from './rating.js?v=20261002k';
+import { C, esc, pct, sign, signColor, tierBadge, raceBadge, raceLabel, formPills, sparkline, sample, go, fmtD, TIERS, TIER_COLOR, addDays, todayKST } from './util.js?v=20261002l';
+import { seasonTable, proTable, sides, ALL_SEASON } from './rating.js?v=20261002l';
 
 export function render(app, el, p) {
-  const season = app.seasonFromParam(p.get('season'));
+  const allTime = p.get('season') === 'all';
+  const season = allTime ? ALL_SEASON : app.seasonFromParam(p.get('season'));
   const mode = p.get('mode') || 'all';
   const method = p.get('method') || app.method;
   const sort = p.get('sort') || 'skill';
@@ -10,9 +11,9 @@ export function render(app, el, p) {
   const q = (p.get('q') || '').toLowerCase(), race = p.get('race') || '', tier = p.get('tier') || '';
   const set = (k, v) => { const o = Object.fromEntries(p); o[k] = v; go('ranking', o); };
   const isCurrent = season.key === app.current.key;
-  const refDate = isCurrent ? todayKST() : season.end;
+  const refDate = isCurrent || allTime ? todayKST() : season.end;
 
-  const seasonOpts = app.seasonsWithData().map(s => `<option value="${s.key}" ${s.key === season.key ? 'selected' : ''}>${esc(s.label)}${s.key === app.current.key ? ' · 진행중' : ''}</option>`).join('');
+  const seasonOpts = `<option value="all" ${allTime ? 'selected' : ''}>전체 시즌 통합</option>` + app.seasonsWithData().map(s => `<option value="${s.key}" ${s.key === season.key ? 'selected' : ''}>${esc(s.label)}${s.key === app.current.key ? ' · 진행중' : ''}</option>`).join('');
   const head = `
   <div class="head">
     <div>
@@ -40,7 +41,7 @@ export function render(app, el, p) {
     return;
   }
 
-  const eng = app.engine(method, mode);
+  const eng = app.engine(method, mode, allTime);
   let rows = seasonTable(app.matches, eng, season, app, refDate);
   const nEvents = app.matches.filter(m => m.kind !== 'pro' && m.date >= season.start && m.date <= season.end && (mode === 'all' || m.kind === mode)).length;
   const eligible = rows.filter(r => r.eligible && !(isCurrent && r.inactive));
@@ -87,10 +88,10 @@ export function render(app, el, p) {
     <div>
     ${toolbar(mode, sort, showAll, q, race, tier, false)}
     <div class="tbl" style="border-top-left-radius:0;border-top-right-radius:0;border-top:0">
-      <div class="rk hd"><div>순위</div><div class="c-chg">7일</div><div>선수</div><div class="c-tier">티어</div><div class="r">레이팅</div><div class="r c-rec">전적</div><div class="r c-wr">승률</div><div class="c-form">최근 5경기</div><div class="c-spark">시즌 추이</div></div>
+      <div class="rk hd"><div>순위</div><div class="c-chg">7일</div><div>선수</div><div class="c-tier">티어</div><div class="r">레이팅</div><div class="r c-rec">전적</div><div class="r c-wr">승률</div><div class="c-form">최근 5경기</div><div class="c-spark">${allTime ? '통산 추이' : '시즌 추이'}</div></div>
       ${list.map((r, i) => row(r, i, sort, app.me)).join('') || '<div class="empty">조건에 맞는 선수가 없습니다</div>'}
     </div>
-    <div class="small mute" style="margin-top:8px">최근 5경기는 왼쪽이 오래된 경기 · 7일 변동은 ${fmtD(addDays(refDate, -7))} 대비 · ${method === 'v2' ? '레이팅 v2: 티어 시드 + 소프트 리셋 + 배치 K×2' : '기존 ELO: 시즌마다 1000점 리셋, 개인전 K12 티어보정 40, 팀전 K8'}</div>
+    <div class="small mute" style="margin-top:8px">최근 5경기는 왼쪽이 오래된 경기 · 7일 변동은 ${fmtD(addDays(refDate, -7))} 대비 · ${allTime ? '<b>전체 시즌 통합</b>: 시즌 리셋 없이 첫 기록부터 이어서 계산한 통산 점수 · ' : ''}${method === 'v2' ? '레이팅 v2: 티어 시드' + (allTime ? '' : ' + 소프트 리셋') + ' + 배치 K×2' : '기존 ELO: ' + (allTime ? '' : '시즌마다 1000점 리셋, ') + '개인전 K12 티어보정 40, 팀전 K8'}</div>
     </div>
     ${!showAll && prov.length ? `<section class="card" style="border-style:dashed">
       <h2>배치중 <span class="mute num">${prov.length}명</span> <span class="mute">· ${C.ELIGIBLE.GAMES}경기 + 서로 다른 상대 ${C.ELIGIBLE.OPPONENTS}명을 채우면 랭킹 등록</span></h2>

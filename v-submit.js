@@ -1,7 +1,7 @@
-import { esc, fmtD, timeAgo, todayKST, expected, C } from './util.js?v=20261002k';
-import { store, isDemo } from './store.js?v=20261002k';
-import { isConfirmed } from './data.js?v=20261002k';
-import { soloOdds } from './rating.js?v=20261002k';
+import { esc, fmtD, timeAgo, todayKST, expected, C } from './util.js?v=20261002l';
+import { store, isDemo } from './store.js?v=20261002l';
+import { isConfirmed } from './data.js?v=20261002l';
+import { soloOdds } from './rating.js?v=20261002l';
 
 let draft = null;
 // 맵 이름 앞의 "2:2", "3:3", "4:4" → 팀당 인원 (없으면 0 = 개인전 맵)

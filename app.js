@@ -1,15 +1,15 @@
-import { C, esc, qs, go, ls, uid, seasonOf, currentSeason, todayKST, raceLabel } from './util.js?v=20261002k';
-import { loadOfficial, normalize, submissionsToRows, isConfirmed, isFix, isReg, applyFixes } from './data.js?v=20261002k';
-import { runEngine } from './rating.js?v=20261002k';
-import { store, isDemo } from './store.js?v=20261002k';
-import * as ranking from './v-ranking.js?v=20261002k';
-import * as matches from './v-matches.js?v=20261002k';
-import * as player from './v-player.js?v=20261002k';
-import * as analysis from './v-analysis.js?v=20261002k';
-import * as submit from './v-submit.js?v=20261002k';
-import * as board from './v-board.js?v=20261002k';
-import * as guide from './v-guide.js?v=20261002k';
-import * as tour from './v-tour.js?v=20261002k';
+import { C, esc, qs, go, ls, uid, seasonOf, currentSeason, todayKST, raceLabel } from './util.js?v=20261002l';
+import { loadOfficial, normalize, submissionsToRows, isConfirmed, isFix, isReg, applyFixes } from './data.js?v=20261002l';
+import { runEngine } from './rating.js?v=20261002l';
+import { store, isDemo } from './store.js?v=20261002l';
+import * as ranking from './v-ranking.js?v=20261002l';
+import * as matches from './v-matches.js?v=20261002l';
+import * as player from './v-player.js?v=20261002l';
+import * as analysis from './v-analysis.js?v=20261002l';
+import * as submit from './v-submit.js?v=20261002l';
+import * as board from './v-board.js?v=20261002l';
+import * as guide from './v-guide.js?v=20261002l';
+import * as tour from './v-tour.js?v=20261002l';
 
 const VIEWS = { ranking, matches, player, analysis, submit, board, guide, tour };
 const $ = s => document.querySelector(s);
@@ -23,9 +23,9 @@ const app = {
 
   tierAt(id, sk) { return (sk && this.snaps[sk] && this.snaps[sk][id]) || (this.players.get(id) || {}).tier || 'Silver'; },
   seasonOf,
-  engine(method = 'v2', filter = 'all') {
-    const k = method + '|' + filter;
-    if (!this._eng.has(k)) this._eng.set(k, runEngine(this.matches, this, method, filter));
+  engine(method = 'v2', filter = 'all', allTime = false) {
+    const k = method + '|' + filter + (allTime ? '|all' : '');
+    if (!this._eng.has(k)) this._eng.set(k, runEngine(this.matches, this, method, filter, allTime));
     return this._eng.get(k);
   },
   seasonsWithData() {

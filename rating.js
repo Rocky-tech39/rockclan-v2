@@ -1,4 +1,4 @@
-import { C, tierIdx, expected, seasonOf } from './util.js?v=20261002k';
+import { C, tierIdx, expected, seasonOf } from './util.js?v=20261002l';
 
 // 한 경기 → 양쪽 선수 목록
 export const sides = m => m.kind === 'solo' ? [[m.p1], [m.p2]] : [m.t1, m.t2];
@@ -9,7 +9,10 @@ export const sides = m => m.kind === 'solo' ? [[m.p1], [m.p2]] : [m.t1, m.t2];
  * filter: 'all' | 'solo' | 'team'
  * 반환: { events: Map(matchId → {e, pre, delta}), hist: Map(id → [{date, r, win, d, mid}]) , rAt(id, date) }
  */
-export function runEngine(matches, ctx, method = 'v2', filter = 'all') {
+// 전체 시즌 통합: 시즌 리셋 없이 첫 경기부터 이어서 계산
+export const ALL_SEASON = { key: 'all', label: '전체 시즌 통합', start: C.SEASONS[0].start, end: C.SEASONS[C.SEASONS.length - 1].end };
+
+export function runEngine(matches, ctx, method = 'v2', filter = 'all', allTime = false) {
   const tierAt = (id, sk) => ctx.tierAt(id, sk);
   const P = C.V2;
   const R = new Map(), G = new Map();
@@ -21,7 +24,8 @@ export function runEngine(matches, ctx, method = 'v2', filter = 'all') {
     if (m.kind === 'pro' || m.dup) continue;
     if (filter === 'solo' && m.kind !== 'solo') continue;
     if (filter === 'team' && m.kind !== 'team') continue;
-    const s = seasonOf(m.date); if (!s) continue;
+    const s0 = seasonOf(m.date); if (!s0) continue;
+    const s = allTime ? ALL_SEASON : s0;
     if (s.key !== curSeason) {
       if (method === 'v2') {
         for (const [id, r] of R) { const b = base2(id, s.key); R.set(id, b + (r - b) * P.SOFT_RESET); }
