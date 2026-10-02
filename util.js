@@ -32,17 +32,12 @@ export function expected(ra, rb) { return 1 / (1 + Math.pow(10, (rb - ra) / 400)
 export function tierBadge(t) {
   return `<span class="tier" style="color:${TIER_COLOR[t] || '#6E7A8C'}">${esc(t || '-')}</span>`;
 }
-// 종족 아이콘 — 락클랜 v2 자체 제작(단순 도형). T=육각 볼트, P=크리스털, Z=알
-const RACE_SVG = {
-  t: '<path d="M12 2.5 20.2 7.2v9.6L12 21.5 3.8 16.8V7.2z" fill="currentColor"/><circle cx="12" cy="12" r="3.6" fill="var(--rc)"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/>',
-  p: '<path d="M12 2 18.5 12 12 22 5.5 12z" fill="currentColor"/><path d="M12 2v20M5.5 12h13" stroke="var(--rc)" stroke-width="1.4" opacity=".55"/>',
-  z: '<path d="M12 2.5c4.3 0 7 5.4 7 10.2 0 4.7-3.1 8.8-7 8.8s-7-4.1-7-8.8C5 7.9 7.7 2.5 12 2.5z" fill="currentColor"/><circle cx="9.6" cy="11" r="1.7" fill="var(--rc)"/><circle cx="14.2" cy="14.6" r="1.3" fill="var(--rc)"/><circle cx="13.6" cy="8.4" r="1" fill="var(--rc)"/>',
-  r: '<path d="M8.6 9.2a3.4 3.4 0 1 1 5 3c-1 .6-1.6 1.2-1.6 2.4v.6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><circle cx="12" cy="18.6" r="1.5" fill="currentColor"/>'
-};
-export function raceKey(r) { const k = String(r || '').trim().toLowerCase()[0]; return RACE_SVG[k] ? k : 'r'; }
+// 종족 표시 — 종족 색 배지 + 머리글자 (T/P/Z/R)
+const RACE_LETTER = { t: 'T', p: 'P', z: 'Z', r: 'R' };
+export function raceKey(r) { const k = String(r || '').trim().toLowerCase()[0]; return RACE_LETTER[k] ? k : 'r'; }
 export function raceBadge(r, size = '') {
   const k = raceKey(r), name = RACE_KO[r] || r || '종족 미상';
-  return `<span class="race race-${k}${size ? ' ' + size : ''}" title="${esc(name)}" role="img" aria-label="${esc(name)}"><svg viewBox="0 0 24 24" aria-hidden="true">${RACE_SVG[k]}</svg></span>`;
+  return `<span class="race race-${k}${size ? ' ' + size : ''}" title="${esc(name)}" role="img" aria-label="${esc(name)}">${RACE_LETTER[k]}</span>`;
 }
 export function raceLabel(r, size = 'sm') {
   return `<span class="rlabel">${raceBadge(r, size)}${esc(RACE_KO[r] || r || '')}</span>`;

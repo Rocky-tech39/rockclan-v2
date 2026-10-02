@@ -1,9 +1,9 @@
 :root{
-  --bg:#F6F8FC;--bg2:#FFFFFF;--card:#FFFFFF;--card2:#F3F6FB;--line:#E3E8F0;--line2:#D5DCE7;--line3:#B9C3D3;
+  --bg:#EEF1F6;--bg2:#FFFFFF;--card:#FFFFFF;--card2:#F4F6FA;--line:#D5DCE6;--line2:#C3CCD9;--line3:#9AA6B8;
   --text:#121826;--text2:#3A4456;--mute:#5B6475;--mute2:#8C95A6;
   --acc:#2F5BEA;--acc2:#2F5BEA;--acch:#2248CC;--accbg:#E8EEFF;--up:#1F9D6B;--down:#E5484D;--win:#1F9D6B;
   --warnbg:#FFF7E0;--warnline:#F0D48A;--warn:#9A6B00;--infobg:#EEF3FF;--infoline:#C9D6FB;--info:#2443B8;
-  --hover:#EEF2FA;--shadow:0 1px 2px rgba(16,24,40,.05),0 1px 3px rgba(16,24,40,.06);
+  --hover:#EEF2FA;--shadow:0 1px 2px rgba(16,24,40,.07),0 2px 6px rgba(16,24,40,.06);
   --num:'Oxanium','IBM Plex Sans KR',sans-serif;
 }
 *{box-sizing:border-box}
@@ -48,8 +48,8 @@ h1.title{margin:0;font:700 34px var(--num);letter-spacing:-.01em}
 .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px;box-shadow:var(--shadow)}
 .card h2{margin:0 0 12px;font-size:15px;font-weight:700}
 .card h2 .mute{font-weight:400;font-size:12px}
-.tile{background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:14px 16px;display:flex;flex-direction:column;gap:4px;color:var(--text)}
-a.tile:hover{border-color:var(--line3);color:var(--text)}
+.tile{background:var(--card);box-shadow:var(--shadow);border:1px solid var(--line2);border-radius:12px;padding:14px 16px;display:flex;flex-direction:column;gap:4px;color:var(--text)}
+a.tile:hover{border-color:var(--acc);color:var(--text)}
 .tile .k{font-size:12px;color:var(--acc2);font-weight:600;letter-spacing:.03em}
 .tile .v{font:700 21px var(--num)}
 .tile .s{font-size:12.5px;color:var(--mute)}
@@ -76,11 +76,10 @@ label.lbl{display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--
 .tag.ok{color:#fff;background:var(--up)}
 
 .tier{font-size:13px;font-weight:600}
-.race{display:inline-flex;width:24px;height:24px;border-radius:7px;background:var(--rc,#8C95A6);color:#fff;align-items:center;justify-content:center;flex:none;vertical-align:middle}
-.race svg{width:16px;height:16px;display:block}
-.race.lg{width:44px;height:44px;border-radius:12px}.race.lg svg{width:28px;height:28px}
-.race.sm{width:18px;height:18px;border-radius:5px}.race.sm svg{width:12px;height:12px}
-.race-t{--rc:#3E6CB5}.race-p{--rc:#C98A12}.race-z{--rc:#8B3FB5}.race-r{--rc:#6B7280}
+.race{display:inline-flex;width:24px;height:24px;border-radius:7px;background:var(--rc,#8C95A6);color:#fff;align-items:center;justify-content:center;flex:none;vertical-align:middle;font:800 13px var(--num);letter-spacing:0;box-shadow:inset 0 -2px 0 rgba(0,0,0,.18)}
+.race.lg{width:44px;height:44px;border-radius:12px;font-size:22px}
+.race.sm{width:18px;height:18px;border-radius:5px;font-size:10.5px}
+.race-t{--rc:#2F6BD8}.race-p{--rc:#D9A30F}.race-z{--rc:#8E3FC4}.race-r{--rc:#6B7280}
 .rlabel{display:inline-flex;align-items:center;gap:6px}
 .form{display:inline-flex;gap:3px}
 .form i{font-style:normal;width:21px;height:21px;border-radius:5px;display:inline-flex;align-items:center;justify-content:center;font:700 11px var(--num)}
@@ -162,6 +161,22 @@ label.lbl{display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--
 .warnbox b{color:var(--warn)}
 .tabbar{display:none}
 .vs{display:grid;grid-template-columns:minmax(0,1fr) 220px minmax(0,1fr);align-items:center;gap:16px;padding:18px 0 10px}
+
+/* player picker */
+.pcard[hidden],.tgroup[hidden]{display:none!important}
+.tgroup{display:flex;flex-direction:column;gap:10px}
+.tg-h{display:flex;align-items:center;gap:8px;font-size:16px;padding-bottom:6px;border-bottom:2px solid var(--line)}
+.tg-dot{width:10px;height:10px;border-radius:50%}
+.pcard{gap:10px!important}
+.pc-top{display:flex;align-items:center;gap:8px;min-width:0}
+.pc-name{font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
+.pc-rank{font-size:12px;color:var(--mute);font-weight:600}
+.pc-bot{display:flex;justify-content:space-between;align-items:flex-end;gap:8px}
+.pc-rec{font-size:13px;color:var(--text2)}
+.pc-r{font:700 22px var(--num);line-height:1;color:var(--acc)}
+.pc-r.mute2{color:var(--mute2)}
+.pcard.idle{background:var(--card2);box-shadow:none}
+.prov-tag{font-size:10.5px;color:var(--mute);border:1px dashed var(--line3);border-radius:4px;padding:0 4px}
 
 /* tour */
 .tourstrip{background:var(--accbg);border-bottom:1px solid var(--infoline);font-size:14px}

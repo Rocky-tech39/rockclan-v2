@@ -1,6 +1,6 @@
-import { esc, fmtD, timeAgo, todayKST, expected, C } from './util.js?v=20261002c';
-import { store, isDemo } from './store.js?v=20261002c';
-import { isConfirmed } from './data.js?v=20261002c';
+import { esc, fmtD, timeAgo, todayKST, expected, C } from './util.js?v=20261002e';
+import { store, isDemo } from './store.js?v=20261002e';
+import { isConfirmed } from './data.js?v=20261002e';
 
 let draft = null;
 const newDraft = () => ({ kind: 'pro', date: todayKST(), t1: [], t2: [], sets: [], confirmer: '' });
@@ -89,7 +89,7 @@ function renderForm(app, box) {
     const max = d.kind === 'solo' ? 1 : 4;
     return `<div class="row" style="background:var(--bg);border:1px solid var(--line2);border-radius:8px;padding:6px;min-height:46px;gap:6px">
       ${arr.map(x => `<button class="chip" data-rm="${team}|${esc(x)}" title="빼기">${esc(x)} ✕</button>`).join('')}
-      ${arr.length < max ? `<select class="fld" data-add="${team}" style="min-height:34px;padding:4px 8px;border-style:dashed" aria-label="팀 ${team} 선수 추가"><option value="">+ 선수</option>${ids.filter(x => !d.t1.includes(x) && !d.t2.includes(x)).map(x => `<option>${esc(x)}</option>`).join('')}</select>` : ''}
+      ${arr.length < max ? `<select class="fld" data-add="${team}" style="min-height:34px;padding:4px 8px;border-style:dashed" aria-label="팀 ${team} 선수 추가"><option value="">+ 선수</option><option value="__new">＋ 목록에 없는 선수 등록…</option>${ids.filter(x => !d.t1.includes(x) && !d.t2.includes(x)).map(x => `<option>${esc(x)}</option>`).join('')}</select>` : ''}
     </div>`;
   };
   const setRow = (s, i) => {
@@ -137,7 +137,7 @@ function renderForm(app, box) {
   const rerender = () => renderForm(app, box);
   box.querySelectorAll('[data-kind]').forEach(b => b.onclick = () => { const k = b.dataset.kind; draft = { ...newDraft(), kind: k, date: d.date, t1: k === 'solo' ? d.t1.slice(0, 1) : d.t1, t2: k === 'solo' ? d.t2.slice(0, 1) : d.t2 }; rerender(); });
   box.querySelector('#fDate').onchange = e => { d.date = e.target.value; rerender(); };
-  box.querySelectorAll('[data-add]').forEach(s => s.onchange = () => { if (s.value) d['t' + s.dataset.add].push(s.value); rerender(); });
+  box.querySelectorAll('[data-add]').forEach(s => s.onchange = () => { const team = s.dataset.add; if (s.value === '__new') { s.value = ''; return app.registerPlayer(id => { d['t' + team].push(id); rerender(); }); } if (s.value) d['t' + team].push(s.value); rerender(); });
   box.querySelectorAll('[data-rm]').forEach(b => b.onclick = () => { const [t, id] = b.dataset.rm.split('|'); d['t' + t] = d['t' + t].filter(x => x !== id); d.sets.forEach(s => { if (s.p1 === id) s.p1 = ''; if (s.p2 === id) s.p2 = ''; if (s.t1) s.t1 = s.t1.filter(x => x !== id); if (s.t2) s.t2 = s.t2.filter(x => x !== id); }); rerender(); });
   box.querySelectorAll('[data-map]').forEach(s => s.onchange = () => { d.sets[+s.dataset.map].map = s.value; });
   box.querySelectorAll('[data-sp]').forEach(s => s.onchange = () => { const [i, k] = s.dataset.sp.split('|'); d.sets[+i][k] = s.value; rerender(); });

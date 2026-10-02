@@ -1,15 +1,15 @@
-import { C, esc, qs, go, ls, uid, seasonOf, currentSeason, todayKST } from './util.js?v=20261002c';
-import { loadOfficial, normalize, submissionsToRows, isConfirmed, isFix, applyFixes } from './data.js?v=20261002c';
-import { runEngine } from './rating.js?v=20261002c';
-import { store, isDemo } from './store.js?v=20261002c';
-import * as ranking from './v-ranking.js?v=20261002c';
-import * as matches from './v-matches.js?v=20261002c';
-import * as player from './v-player.js?v=20261002c';
-import * as analysis from './v-analysis.js?v=20261002c';
-import * as submit from './v-submit.js?v=20261002c';
-import * as board from './v-board.js?v=20261002c';
-import * as guide from './v-guide.js?v=20261002c';
-import * as tour from './v-tour.js?v=20261002c';
+import { C, esc, qs, go, ls, uid, seasonOf, currentSeason, todayKST, raceLabel } from './util.js?v=20261002e';
+import { loadOfficial, normalize, submissionsToRows, isConfirmed, isFix, isReg, applyFixes } from './data.js?v=20261002e';
+import { runEngine } from './rating.js?v=20261002e';
+import { store, isDemo } from './store.js?v=20261002e';
+import * as ranking from './v-ranking.js?v=20261002e';
+import * as matches from './v-matches.js?v=20261002e';
+import * as player from './v-player.js?v=20261002e';
+import * as analysis from './v-analysis.js?v=20261002e';
+import * as submit from './v-submit.js?v=20261002e';
+import * as board from './v-board.js?v=20261002e';
+import * as guide from './v-guide.js?v=20261002e';
+import * as tour from './v-tour.js?v=20261002e';
 
 const VIEWS = { ranking, matches, player, analysis, submit, board, guide, tour };
 const $ = s => document.querySelector(s);
@@ -39,6 +39,11 @@ const app = {
     return n >= 40 ? this.current : this.prevSeason(this.current);
   },
   rebuild() {
+    this.regs = this.allSubs.filter(isReg).slice().sort((a, b) => (a.created_at || '').localeCompare(b.created_at || ''));
+    for (const r of this.regs) {
+      const p = r.sets.player;
+      if (!this.players.has(p.id)) this.players.set(p.id, { id: p.id, race: p.race || 'Random', tier: p.tier || 'Silver', isNew: true, regBy: r.submitter, regAt: r.created_at });
+    }
     this.subs = this.allSubs.filter(x => Array.isArray(x.sets));
     this.fixes = this.allSubs.filter(isFix);
     this.pendingFix = new Map();
@@ -58,10 +63,50 @@ const app = {
   setMe(id) { this.me = id; ls.set('rc.me', id); updateMeBtn(); updateBadge(); toast(id ? `내 선수: ${id}` : '내 선수 해제'); route(); },
   pickMe() {
     const ids = [...this.players.keys()].filter(x => !C.HIDE_IDS.includes(x)).sort((a, b) => a.localeCompare(b));
-    modal(`<h3 id="modalTitle">내 선수 설정</h3><p class="mute small">이 기기에서 나를 누구로 표시할지 정합니다. 랭킹에서 내 위치, 결과 확인 요청, 의견 작성자에 쓰입니다. (시안 단계라 로그인 없이 신뢰 기반으로 운영해요)</p>
+    modal(`<h3 id="modalTitle">내 선수 설정</h3><p class="mute small">이 기기에서 나를 누구로 표시할지 정합니다. 랭킹에서 내 위치, 결과 확인 요청, 의견 작성자에 쓰입니다. (베타 기간이라 로그인 없이 신뢰 기반으로 운영해요)</p>
       <label class="sr" for="meSel">선수</label><select id="meSel" class="fld" style="width:100%"><option value="">선택 안 함</option>${ids.map(x => `<option ${x === this.me ? 'selected' : ''}>${esc(x)}</option>`).join('')}</select>
+      <div class="note small" style="margin-top:12px">목록에 내 아이디가 없나요? <button class="btn small" id="meNew" style="margin-left:6px">+ 새 선수 등록</button></div>
       <div class="row" style="justify-content:flex-end;margin-top:14px"><button class="btn" data-close>닫기</button><button class="btn pri" id="meGo">저장</button></div>`,
-      m => m.querySelector('#meGo').onclick = () => { const v = m.querySelector('#meSel').value || null; closeModal(); this.setMe(v); });
+      m => {
+        m.querySelector('#meGo').onclick = () => { const v = m.querySelector('#meSel').value || null; closeModal(); this.setMe(v); };
+        m.querySelector('#meNew').onclick = () => this.registerPlayer(id => this.setMe(id));
+      });
+  },
+  registerPlayer(onDone) {
+    const RACES = [['Protoss', '프로토스'], ['Terran', '테란'], ['Zerg', '저그'], ['Random', '랜덤']];
+    const TIERS = ['Bronze', 'Silver', 'Gold', 'Diamond', 'Legend', 'Stone'];
+    modal(`<h3 id="modalTitle">새 선수 등록</h3><p class="mute small">명단에 없는 클랜원을 추가합니다. 등록하면 바로 결과 제출·랭킹에 쓸 수 있어요. 티어는 운영진이 나중에 조정할 수 있습니다.</p>
+      <label class="lbl" style="margin-top:10px">아이디 (게임 아이디 그대로)<input id="rgId" class="fld" maxlength="20" autocomplete="off" placeholder="예: Rocky"></label>
+      <div class="small" id="rgMsg" style="min-height:18px;margin-top:4px"></div>
+      <div class="lbl" style="margin-top:6px">종족<div class="row" id="rgRace">${RACES.map(([k, v], i) => `<button type="button" class="chip${i === 0 ? ' on' : ''}" data-race="${k}">${raceLabel(k)}</button>`).join('')}</div></div>
+      <label class="lbl" style="margin-top:12px">티어 <span class="small mute">(모르면 Silver)</span><select id="rgTier" class="fld">${TIERS.map(t => `<option ${t === 'Silver' ? 'selected' : ''}>${t}</option>`).join('')}</select></label>
+      <div class="row" style="justify-content:flex-end;margin-top:16px"><button class="btn" data-close>취소</button><button class="btn pri" id="rgGo">등록</button></div>`,
+      m => {
+        let race = RACES[0][0];
+        const inp = m.querySelector('#rgId'), msg = m.querySelector('#rgMsg'), go = m.querySelector('#rgGo');
+        const lower = new Set([...this.players.keys()].map(x => x.toLowerCase()));
+        const check = () => {
+          const v = inp.value.trim();
+          const bad = !v ? '' : v.length < 2 ? '2자 이상 입력해 주세요' : /[\s,]/.test(v) ? '띄어쓰기·쉼표 없이 입력해 주세요' : lower.has(v.toLowerCase()) ? '이미 명단에 있는 아이디예요' : '';
+          msg.innerHTML = bad ? `<span class="down">${bad}</span>` : v ? '<span class="up">등록할 수 있어요</span>' : '';
+          go.disabled = !v || !!bad; return !go.disabled;
+        };
+        inp.oninput = check; check(); inp.focus();
+        m.querySelectorAll('[data-race]').forEach(b => b.onclick = () => { race = b.dataset.race; m.querySelectorAll('[data-race]').forEach(x => x.classList.toggle('on', x === b)); });
+        go.onclick = async () => {
+          if (!check()) return;
+          const id = inp.value.trim(), tier = m.querySelector('#rgTier').value;
+          go.disabled = true;
+          try {
+            await store.insert('submissions', { match_date: todayKST(), kind: 'solo', team1: [id], team2: [], sets: { player: { id, race, tier } }, submitter: this.me || id, status: 'pending' });
+            closeModal();
+            this.players.set(id, { id, race, tier, isNew: true });
+            toast(`${id} 선수를 등록했어요`);
+            try { this.allSubs = await store.list('submissions', '&status=neq.canceled'); this.rebuild(); updateBadge(); } catch (e) { console.warn(e); }
+            onDone ? onDone(id) : route();
+          } catch (e) { toast(e.message); go.disabled = false; }
+        };
+      });
   },
   feedback(screenKey) {
     const S = board.SCREENS;

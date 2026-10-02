@@ -1,5 +1,5 @@
-import { esc, timeAgo, go } from './util.js?v=20261002c';
-import { store, isDemo } from './store.js?v=20261002c';
+import { esc, timeAgo, go } from './util.js?v=20261002e';
+import { store, isDemo } from './store.js?v=20261002e';
 
 export const SCREENS = { ranking: '랭킹', matches: '경기 기록', analysis: '전력 분석', player: '선수 프로필', submit: '결과 제출·확인', board: '의견 게시판', guide: '안내', etc: '기타·전체' };
 export const CATS = ['좋아요', '불편해요', '버그', '아이디어', '레이팅 로직', '기타'];
@@ -22,7 +22,7 @@ export async function render(app, el, p) {
 
   el.innerHTML = `
   <div class="head"><div><div class="eyebrow">FEEDBACK</div><h1 class="title">의견 게시판</h1>
-    <div class="desc">v2 시안에 대한 의견을 모읍니다. 공감(▲)이 많은 의견부터 반영할게요. 오른쪽 아래 <b>의견 남기기</b> 버튼은 어느 화면에서나 쓸 수 있어요.</div></div>
+    <div class="desc">v2 Beta에 대한 의견을 모읍니다. 공감(▲)이 많은 의견부터 반영할게요. 오른쪽 아래 <b>의견 남기기</b> 버튼은 어느 화면에서나 쓸 수 있어요.</div></div>
     <div class="row">${isDemo ? '<span class="tag warn">시연 모드</span>' : ''}<button class="btn pri" data-write>새 의견 쓰기</button></div></div>
   <div class="stack">
     <div class="row">

@@ -1,9 +1,9 @@
-import { C, TIERS, expected, esc } from './util.js?v=20261002c';
+import { C, TIERS, expected, esc } from './util.js?v=20261002e';
 
 export function render(app, el) {
   const P = C.V2;
   el.innerHTML = `
-  <div class="head"><div><div class="eyebrow">HOW IT WORKS</div><h1 class="title">레이팅 안내</h1><div class="desc">v2 시안의 점수 계산 방식과 기존 방식과의 차이</div></div></div>
+  <div class="head"><div><div class="eyebrow">HOW IT WORKS</div><h1 class="title">레이팅 안내</h1><div class="desc">v2 Beta의 점수 계산 방식과 기존 방식과의 차이</div></div></div>
   <div class="stack">
   <section class="grid2">
     <div class="card"><h2>레이팅 v2 (개편안)</h2>
@@ -30,8 +30,8 @@ export function render(app, el) {
     </div>
     <div id="gOut" style="margin-top:14px"></div>
   </section>
-  <section class="card"><h2>이 시안에 대해</h2>
-    <div style="font-size:14px;line-height:1.8">경기 기록은 기존 사이트의 공식 DB를 실시간으로 읽어서 계산합니다(읽기 전용). 결과 제출과 의견 게시판은 별도 저장소에 쌓이며, 공식 기록을 바꾸지 않습니다. 제출 후 상대 팀이 확인한 결과는 이 시안의 랭킹에만 "제출 반영"으로 표시되어 함께 계산됩니다.</div>
+  <section class="card"><h2>v2 Beta에 대해</h2>
+    <div style="font-size:14px;line-height:1.8">경기 기록은 기존 사이트의 공식 DB를 실시간으로 읽어서 계산합니다(읽기 전용). 결과 제출과 의견 게시판은 별도 저장소에 쌓이며, 공식 기록을 바꾸지 않습니다. 제출 후 상대 팀이 확인한 결과는 v2 Beta 랭킹에만 "제출 반영"으로 표시되어 함께 계산됩니다.</div>
   </section></div>`;
   const calc = () => {
     const a = +el.querySelector('#gA').value || 1000, b = +el.querySelector('#gB').value || 1000, t = el.querySelector('#gT').value;

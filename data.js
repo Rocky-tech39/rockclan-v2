@@ -1,4 +1,4 @@
-import { C } from './util.js?v=20261002c';
+import { C } from './util.js?v=20261002e';
 
 async function rest(path) {
   const res = await fetch(`${C.READ_URL}/rest/v1/${path}`, {
@@ -107,6 +107,8 @@ export function isConfirmed(s) {
 // ── 수정·삭제 요청 ──────────────────────────────────────────
 // submissions 테이블에 sets = { fix: { del: [rowId], edit: { rowId: { swap, map } }, summary } } 형태로 저장
 export const isFix = s => s && s.sets && !Array.isArray(s.sets) && s.sets.fix;
+// 신규 선수 등록도 submissions에 저장: sets = { player: { id, race, tier } }, team1 = [id]
+export const isReg = s => s && s.sets && !Array.isArray(s.sets) && s.sets.player && s.sets.player.id;
 
 export function applyFixes(rows, fixes) {
   const del = new Set(), edit = new Map();
