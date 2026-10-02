@@ -122,7 +122,14 @@ label.lbl{display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--
 .set .a{text-align:right}
 .pbar{display:flex;align-items:center;gap:6px}
 .pbar .bar{flex:1;height:8px;display:flex;border-radius:4px;overflow:hidden;background:var(--line3)}
-.pbar .bar i{background:#94A3B8}
+.pbar .bar i{background:var(--acc)}
+.pbar.duo .bar{height:10px;border-radius:5px;background:none;gap:2px}
+.pbar.duo .bar i.t1{background:linear-gradient(90deg,#1E46D8,#5B8CFF);border-radius:5px 0 0 5px}
+.pbar.duo .bar i.t2{flex:1;background:linear-gradient(90deg,#FF9A6B,#F0542A);border-radius:0 5px 5px 0}
+.pbar.duo .pa{color:#2F5BEA}.pbar.duo .pb{color:#E5531F}
+.pbar.duo .fav{font-weight:800;font-size:13px}
+.c-p.pbar .bar{background:#FFD8C9}
+.c-p.pbar .bar i{background:linear-gradient(90deg,#1E46D8,#5B8CFF)}
 .pbar span{font:500 12px var(--num);width:30px;color:var(--text2)}
 .win{font-weight:700;color:var(--text)}.lose{color:var(--mute)}
 

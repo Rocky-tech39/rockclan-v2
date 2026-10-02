@@ -1,7 +1,7 @@
-import { esc, fmtD, go, sign } from './util.js?v=20261002f';
-import { sides } from './rating.js?v=20261002f';
-import { store } from './store.js?v=20261002f';
-import { timeAgo } from './util.js?v=20261002f';
+import { esc, fmtD, go, sign } from './util.js?v=20261002g';
+import { sides } from './rating.js?v=20261002g';
+import { store } from './store.js?v=20261002g';
+import { timeAgo } from './util.js?v=20261002g';
 
 export function render(app, el, p) {
   const eng = app.engine(app.method, 'all');
@@ -77,7 +77,7 @@ function setRow(eng, s, i) {
   return `<div class="set">
     <span class="num mute">${i + 1}</span><span class="c-map" style="color:var(--text2)">${esc(s.map)}</span>
     <span class="a ${s.win1 ? 'win' : 'lose'}">${upA ? '<span class="tag info">이변</span> ' : ''}${A.map(P).join(' · ')}</span>
-    <div class="pbar"><span style="text-align:right">${pa}</span><div class="bar"><i style="width:${pa}%"></i></div><span>${100 - pa}</span></div>
+    <div class="pbar duo"><span class="pa${pa > 50 ? ' fav' : ''}" style="text-align:right">${pa}</span><div class="bar"><i class="t1" style="width:${pa}%"></i><i class="t2"></i></div><span class="pb${pa < 50 ? ' fav' : ''}">${100 - pa}</span></div>
     <span class="${!s.win1 ? 'win' : 'lose'}">${B.map(P).join(' · ')}${upB ? ' <span class="tag info">이변</span>' : ''}</span>
     <span class="num" style="text-align:right;color:var(--text2)">±${d.toFixed(1)}</span></div>`;
 }
@@ -95,7 +95,7 @@ function card(app, eng, m, showDate) {
         <div class="s num">${esc(sc1)} <span style="color:var(--mute2)">:</span> ${esc(sc2)}</div>
         <div class="${!m.win1 ? 'win' : 'lose'}" style="text-align:right"><div class="small mute">TEAM 2</div>${m.t2.map(P).join(' · ')}</div></div>
       <div id="s-${m.id}" ${dupOf ? 'hidden' : ''}>
-        <div class="set small mute" style="padding-top:6px;padding-bottom:6px"><span>세트</span><span class="c-map">맵</span><span class="a">Team 1</span><span class="pbar" style="justify-content:center">경기 전 승리 확률</span><span>Team 2</span><span style="text-align:right">변동</span></div>
+        <div class="set small mute" style="padding-top:6px;padding-bottom:6px"><span>세트</span><span class="c-map">맵</span><span class="a" style="color:#2F5BEA;font-weight:600">Team 1</span><span class="pbar" style="justify-content:center">경기 전 승리 확률</span><span style="color:#E5531F;font-weight:600">Team 2</span><span style="text-align:right">변동</span></div>
         ${m.sets.map((s, i) => setRow(eng, s, i)).join('')}
       </div></article>`;
   }

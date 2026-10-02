@@ -1,6 +1,6 @@
-import { esc, fmtD, timeAgo, todayKST, expected, C } from './util.js?v=20261002f';
-import { store, isDemo } from './store.js?v=20261002f';
-import { isConfirmed } from './data.js?v=20261002f';
+import { esc, fmtD, timeAgo, todayKST, expected, C } from './util.js?v=20261002g';
+import { store, isDemo } from './store.js?v=20261002g';
+import { isConfirmed } from './data.js?v=20261002g';
 
 let draft = null;
 const newDraft = () => ({ kind: 'pro', date: todayKST(), t1: [], t2: [], sets: [], confirmer: '' });
