@@ -155,6 +155,7 @@ label.lbl{display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--
 .warnbox{background:var(--warnbg);border:1px solid var(--warnline);border-radius:12px;padding:12px 14px;font-size:14px}
 .warnbox b{color:var(--warn)}
 .tabbar{display:none}
+.vs{display:grid;grid-template-columns:minmax(0,1fr) 220px minmax(0,1fr);align-items:center;gap:16px;padding:18px 0 10px}
 
 @media (max-width:980px){
   .nav{display:none}
@@ -164,6 +165,36 @@ label.lbl{display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--
   .kv{grid-template-columns:repeat(2,minmax(0,1fr))}
   .rk{grid-template-columns:30px minmax(0,1fr) 70px 64px;padding:0 12px;gap:8px}
   .rk .c-chg,.rk .c-tier,.rk .c-rec,.rk .c-wr,.rk .c-spark{display:none}
+  .rk .form i{width:9px;height:9px;border-radius:2px;font-size:0}
+  .rk .c-form{display:flex;justify-content:flex-end}
+  .tbl-bar{padding:10px 12px}
+  .tbl-bar .row{gap:6px}
+  .tbl-bar .fld{flex:1 1 120px;min-width:0}
+  .tbl-bar .chip{padding:5px 10px;font-size:12.5px}
+  .podium a{padding:12px 14px;gap:6px}
+  .podium a b{font-size:20px!important}
+  .podium{gap:8px}
+  .tile .v{font-size:17px}
+  .vs{grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:8px}
+  .vs a{font-size:18px!important}
+  .vs>div:nth-child(2) .num{font-size:36px!important}
+  .vs .small{font-size:11px}
+  .mine{gap:12px;padding:14px}
+  .mine .v{font-size:20px}
+  .subrow{grid-template-columns:52px minmax(0,1fr)!important}
+  .subrow>.row{grid-column:1/-1;justify-content:flex-end}
+  .card{padding:14px}
+  .head{margin-bottom:14px}
+  .post{grid-template-columns:44px minmax(0,1fr);gap:10px;padding:12px}
+  .modal{padding:20px 10px}
+  .modal-card{padding:16px}
+  main{padding:18px 14px 110px}
+  .wrap{padding:0 14px}
+  .set .a,.set span{min-width:0;overflow-wrap:anywhere}
+  .fset{grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important}
+  .fset>span.num{display:none}
+  .fset>select{grid-column:1/-1}
+  .fset .chip{font-size:12px}
   .set{grid-template-columns:28px minmax(0,1fr) minmax(0,1fr) 50px;padding:9px 12px}
   .set .c-map,.set .pbar{display:none}
   .gl{grid-template-columns:52px 26px minmax(0,1fr) 54px}
@@ -172,7 +203,7 @@ label.lbl{display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--
   .tabbar{display:flex;position:fixed;bottom:0;left:0;right:0;background:var(--bg2);border-top:1px solid var(--line);z-index:25}
   .tabbar a{flex:1;text-align:center;padding:14px 0;color:var(--mute);font-size:12.5px;font-weight:600}
   .tabbar a.on{color:var(--acc2)}
-  .fab{bottom:66px;right:14px;padding:11px 16px}
+  .fab{bottom:64px;right:12px;padding:9px 14px;font-size:13px;opacity:.95}
   .cta{display:none}
   h1.title{font-size:26px}
   .top-in{gap:10px}.beta{display:none}

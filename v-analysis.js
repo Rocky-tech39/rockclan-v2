@@ -73,7 +73,7 @@ export function render(app, el, p) {
   <div class="stack">
   <section class="card">
     <div class="grid2" style="gap:12px"><label class="lbl">내 선수<select id="aA" class="fld">${opt(a)}</select></label><label class="lbl">상대 선수<select id="aB" class="fld">${opt(b)}</select></label></div>
-    <div style="display:grid;grid-template-columns:minmax(0,1fr) 220px minmax(0,1fr);align-items:center;gap:16px;padding:18px 0 10px">
+    <div class="vs">
       <div><a href="#/player?id=${encodeURIComponent(a)}" style="font:700 28px var(--num);color:var(--text)">${esc(a)}</a><div class="small mute">${tierBadge(app.tierAt(a, curSk))} · ${esc(RACE_KO[pa.race] || '')} · <span class="num">${Math.round(ra)}</span></div></div>
       <div style="text-align:center"><div class="num" style="font:700 52px var(--num);line-height:1"><span style="color:var(--acc2)">${aw}</span> <span style="color:var(--mute2)">:</span> ${bw}</div><div class="small mute">개인전 ${h2h.length}경기${h2h.length && h2h.length < 15 ? ' · <span style="color:var(--warn)">표본 적음</span>' : ''}</div></div>
       <div style="text-align:right"><a href="#/player?id=${encodeURIComponent(b)}" style="font:700 28px var(--num);color:var(--text)">${esc(b)}</a><div class="small mute">${tierBadge(app.tierAt(b, curSk))} · ${esc(RACE_KO[pb.race] || '')} · <span class="num">${Math.round(rb)}</span></div></div>

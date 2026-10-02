@@ -24,4 +24,5 @@
 ## 운영 메모
 - 의견 상태(접수/검토중/반영예정/반영완료)는 Supabase 대시보드 → Table Editor → `feedback_posts.status`에서 변경
 - 잘못된 제출은 `submissions.status`를 `canceled`로 변경
+- 경기 기록 수정·삭제 요청도 `submissions`에 저장됨(`sets.fix`). 확인되면 v2에 반영되고, '결과 확인' 화면의 '반영된 수정·삭제' 목록을 보고 공식 DB에 옮기면 됨
 - 시안 단계라 로그인 없이 "내 선수" 선택(신뢰 기반)으로 운영

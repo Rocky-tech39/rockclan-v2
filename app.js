@@ -1,5 +1,5 @@
 import { C, esc, qs, go, ls, uid, seasonOf, currentSeason, todayKST } from './util.js';
-import { loadOfficial, normalize, submissionsToRows, isConfirmed } from './data.js';
+import { loadOfficial, normalize, submissionsToRows, isConfirmed, isFix, applyFixes } from './data.js';
 import { runEngine } from './rating.js';
 import { store, isDemo } from './store.js';
 import * as ranking from './v-ranking.js';
@@ -14,7 +14,7 @@ const VIEWS = { ranking, matches, player, analysis, submit, board, guide };
 const $ = s => document.querySelector(s);
 
 const app = {
-  players: new Map(), snaps: {}, maps: [], rows: [], subs: [], matches: [], current: currentSeason(),
+  players: new Map(), snaps: {}, maps: [], rows: [], subs: [], fixes: [], allSubs: [], matches: [], pendingFix: new Map(), current: currentSeason(),
   me: ls.get('rc.me', null),
   _eng: new Map(),
 
@@ -38,13 +38,17 @@ const app = {
     return n >= 40 ? this.current : this.prevSeason(this.current);
   },
   rebuild() {
+    this.subs = this.allSubs.filter(x => Array.isArray(x.sets));
+    this.fixes = this.allSubs.filter(isFix);
+    this.pendingFix = new Map();
+    this.fixes.filter(f => f.status === 'pending' && !isConfirmed(f)).forEach(f => this.pendingFix.set(String(f.sets.fix.target), f));
     const subRows = submissionsToRows(this.subs, this.rows);
-    const all = this.rows.concat(subRows).sort((a, b) => a.match_date.localeCompare(b.match_date) || (a.seq ?? 0) - (b.seq ?? 0));
+    const all = applyFixes(this.rows.concat(subRows), this.fixes).sort((a, b) => a.match_date.localeCompare(b.match_date) || (a.seq ?? 0) - (b.seq ?? 0));
     this.matches = normalize(all);
     this._eng.clear();
   },
   async reloadSubs() {
-    try { this.subs = await store.list('submissions', '&status=neq.canceled'); } catch (e) { console.warn(e); this.subs = []; }
+    try { this.allSubs = await store.list('submissions', '&status=neq.canceled'); } catch (e) { console.warn(e); this.allSubs = []; }
     this.rebuild(); updateBadge(); route();
   },
   rerender() { route(); },
@@ -102,7 +106,8 @@ function updateBadge() {
   const me = app.me, b = $('#inboxBadge');
   if (!me) { b.hidden = true; return; }
   const side = (s, id) => s.team1.includes(id) ? 1 : s.team2.includes(id) ? 2 : 0;
-  const n = app.subs.filter(s => s.status === 'pending' && !isConfirmed(s) && s.submitter !== me && side(s, me) && side(s, me) !== side(s, s.submitter)).length;
+  const n = app.subs.filter(s => s.status === 'pending' && !isConfirmed(s) && s.submitter !== me && side(s, me) && side(s, me) !== side(s, s.submitter)).length
+    + app.fixes.filter(f => f.status === 'pending' && !isConfirmed(f) && f.submitter !== me && f.team1.includes(me)).length;
   b.textContent = n; b.hidden = !n;
 }
 
@@ -125,7 +130,7 @@ async function init() {
     const [off, subs] = await Promise.all([loadOfficial(), store.list('submissions', '&status=neq.canceled').catch(e => { console.warn(e); return []; })]);
     off.players.forEach(p => app.players.set(p.id, p));
     off.snaps.forEach(r => { (app.snaps[r.season_key] ||= {})[r.player_id] = r.tier; });
-    app.maps = off.maps; app.rows = off.rows; app.subs = subs;
+    app.maps = off.maps; app.rows = off.rows; app.allSubs = subs;
     app.rebuild();
     $('#modeNote').textContent = `공식 경기 ${off.rows.length.toLocaleString()}건 · 마지막 경기 ${off.rows.length ? off.rows[off.rows.length - 1].match_date : '-'} · 오늘 ${todayKST()}`;
   } catch (e) {

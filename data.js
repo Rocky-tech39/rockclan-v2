@@ -32,7 +32,7 @@ export function normalize(rows) {
   let header = null;
   for (const r of rows) {
     const isTeam = Array.isArray(r.team1) && r.team1.length > 0;
-    const base = { id: r.id, date: r.match_date, seq: r.seq ?? 0, map: normMap(r.map), score: r.score || '', src: r.src || 'official' };
+    const base = { id: r.id, date: r.match_date, seq: r.seq ?? 0, map: normMap(r.map), score: r.score || '', src: r.src || 'official', fixed: r.fixed || '' };
     if (r.map === 'Match' && isTeam) {
       const w = r.winner_arr || [];
       header = { ...base, kind: 'pro', t1: r.team1, t2: r.team2 || [], win1: w.some(x => r.team1.includes(x)), sets: [] };
@@ -54,6 +54,11 @@ export function normalize(rows) {
       if (ps.every(p => roster.has(p))) { m.parent = header.id; header.sets.push(m); }
     }
     out.push(m);
+  }
+  // 수정된 세트가 있는 프로리그는 스코어·승패를 세트 결과로 다시 계산
+  for (const h of out.filter(m => m.kind === 'pro' && (m.fixed || m.sets.some(x => x.fixed)))) {
+    const w1 = h.sets.filter(x => x.win1).length, w2 = h.sets.length - w1;
+    h.win1 = w1 > w2; h.score = `${w1}:${w2}`; h.fixed = h.fixed || 'edit';
   }
   // 프로리그 중복 의심: 같은 날·같은 팀·같은 세트 구성
   const sig = new Map();
@@ -97,4 +102,34 @@ export function isConfirmed(s) {
     return h >= C.AUTO_CONFIRM_HOURS;
   }
   return false;
+}
+
+// ── 수정·삭제 요청 ──────────────────────────────────────────
+// submissions 테이블에 sets = { fix: { del: [rowId], edit: { rowId: { swap, map } }, summary } } 형태로 저장
+export const isFix = s => s && s.sets && !Array.isArray(s.sets) && s.sets.fix;
+
+export function applyFixes(rows, fixes) {
+  const del = new Set(), edit = new Map();
+  for (const f of fixes) {
+    if (!isConfirmed(f)) continue;
+    const fx = f.sets.fix;
+    (fx.del || []).forEach(id => del.add(String(id)));
+    Object.entries(fx.edit || {}).forEach(([id, e]) => edit.set(String(id), e));
+  }
+  if (!del.size && !edit.size) return rows;
+  const out = [];
+  for (const r of rows) {
+    const id = String(r.id);
+    if (del.has(id)) continue;
+    const e = edit.get(id);
+    if (!e) { out.push(r); continue; }
+    const n = { ...r, fixed: 'edit' };
+    if (e.map) n.map = e.map;
+    if (e.swap) {
+      if (n.player1) n.winner = n.winner === n.player1 ? n.player2 : n.player1;
+      else if (Array.isArray(n.team1)) { const w1 = (n.winner_arr || []).some(x => n.team1.includes(x)); n.winner_arr = w1 ? n.team2 : n.team1; }
+    }
+    out.push(n);
+  }
+  return out;
 }

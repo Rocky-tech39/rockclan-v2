@@ -18,7 +18,6 @@ export function render(app, el, p) {
     <div>
       <div class="eyebrow">CLAN LEADERBOARD</div>
       <h1 class="title">클랜 랭킹</h1>
-      <div class="desc">레이팅 = 티어로 시작해 경기 결과로 움직이는 실력 점수 · ${C.ELIGIBLE.GAMES}경기·상대 ${C.ELIGIBLE.OPPONENTS}명 미만은 배치중(?)${isCurrent ? ` · ${C.ELIGIBLE.INACTIVE_DAYS}일간 경기 없으면 숨김` : ''}</div>
     </div>
     <div class="row">
       <label class="sr" for="rkSeason">시즌</label><select id="rkSeason" class="fld">${seasonOpts}</select>

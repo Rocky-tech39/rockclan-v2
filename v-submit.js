@@ -14,11 +14,21 @@ export async function render(app, el, p) {
   const statusOf = s => s.status === 'pending' && isConfirmed(s) ? 'auto' : s.status;
   const toConfirm = me ? subs.filter(s => s.status === 'pending' && !isConfirmed(s) && s.submitter !== me && sideOf(s, me) && sideOf(s, me) !== sideOf(s, s.submitter)) : [];
   const mine = me ? subs.filter(s => s.submitter === me) : [];
+  const fixes = app.fixes || [];
+  const fixConfirm = me ? fixes.filter(f => f.status === 'pending' && !isConfirmed(f) && f.submitter !== me && f.team1.includes(me)) : [];
+  const myFixes = me ? fixes.filter(f => f.submitter === me) : [];
+  const doneFixes = fixes.filter(f => isConfirmed(f));
+  const fixRow = (f, actions) => `<div class="subrow" style="display:grid;grid-template-columns:64px minmax(0,1fr) auto;gap:12px;align-items:center;background:var(--card2);border-radius:10px;padding:10px 14px;margin-top:8px">
+    <span class="num mute small">${fmtD(f.match_date)}</span>
+    <div style="min-width:0"><div style="font-weight:600"><span class="tag warn">수정 요청</span> ${esc(f.sets.fix.title || '')}</div>
+      <div style="font-size:14px;margin-top:3px">${esc(f.sets.fix.summary || '')}</div>
+      <div class="small mute">요청 ${esc(f.submitter)} · ${timeAgo(f.created_at)} · 사유: ${esc(f.sets.fix.reason || '')}${f.confirmed_by ? ` · 확인 ${esc(f.confirmed_by)}` : ''}${f.dispute_reason ? ` · 이의: ${esc(f.dispute_reason)}` : ''}</div></div>
+    <div class="row">${actions || `<span class="tag ${ST[statusOf(f)][1]}">${ST[statusOf(f)][0]}</span>`}</div></div>`;
   const others = subs.filter(s => s.status !== 'canceled' && !toConfirm.includes(s) && !mine.includes(s)).slice(0, 15);
   const ST = { pending: ['대기', 'mute'], confirmed: ['확인됨 · 반영', 'ok'], auto: ['자동 반영', 'ok'], disputed: ['이의 제기', 'warn'], canceled: ['취소', 'mute'] };
   const title = s => `${s.kind === 'pro' ? '프로리그' : s.kind === 'solo' ? '개인전' : '팀전'} · ${s.team1.map(esc).join(' · ')} vs ${s.team2.map(esc).join(' · ')}`;
   const score = s => { const w = s.sets.filter(x => x.side === 1).length; return `${w}:${s.sets.length - w}`; };
-  const subRow = (s, actions) => `<div style="display:grid;grid-template-columns:64px minmax(0,1fr) 60px auto;gap:12px;align-items:center;background:var(--card2);border-radius:10px;padding:10px 14px;margin-top:8px">
+  const subRow = (s, actions) => `<div class="subrow" style="display:grid;grid-template-columns:64px minmax(0,1fr) 60px auto;gap:12px;align-items:center;background:var(--card2);border-radius:10px;padding:10px 14px;margin-top:8px">
     <span class="num mute small">${fmtD(s.match_date)}</span>
     <div style="min-width:0"><div style="font-weight:600;overflow:hidden;text-overflow:ellipsis">${title(s)}</div><div class="small mute">제출 ${esc(s.submitter)} · ${timeAgo(s.created_at)}${s.confirmed_by ? ` · 확인 ${esc(s.confirmed_by)}` : ''}${s.dispute_reason ? ` · 사유: ${esc(s.dispute_reason)}` : ''}</div></div>
     <b class="num" style="font-size:18px;text-align:center">${score(s)}</b>
@@ -30,10 +40,14 @@ export async function render(app, el, p) {
     ${isDemo ? '<span class="tag warn">시연 모드 · 이 브라우저에만 저장</span>' : ''}</div>
   <div class="stack">
   ${!me ? `<div class="note">결과를 제출·확인하려면 먼저 <b>내 선수</b>를 설정해 주세요. <button class="btn pri" data-setme style="margin-left:8px">내 선수 설정</button></div>` : ''}
-  ${me ? `<section class="card"><h2>내가 확인할 결과 <span class="num" style="color:var(--acc2)">${toConfirm.length}</span></h2>
-    ${toConfirm.map(s => subRow(s, `<button class="btn blue" data-ok="${s.id}">맞아요</button><button class="btn" data-no="${s.id}">이의 제기</button>`)).join('') || '<div class="mute small">확인할 결과가 없습니다</div>'}</section>` : ''}
+  ${me ? `<section class="card"><h2>내가 확인할 결과 <span class="num" style="color:var(--acc2)">${toConfirm.length + fixConfirm.length}</span></h2>
+    ${toConfirm.map(s => subRow(s, `<button class="btn blue" data-ok="${s.id}">맞아요</button><button class="btn" data-no="${s.id}">이의 제기</button>`)).join('')}
+    ${fixConfirm.map(f => fixRow(f, `<button class="btn blue" data-ok="${f.id}">맞아요</button><button class="btn" data-no="${f.id}">이의 제기</button>`)).join('')}
+    ${toConfirm.length + fixConfirm.length ? '' : '<div class="mute small">확인할 결과가 없습니다</div>'}</section>` : ''}
   <section class="card" id="newForm"></section>
   ${mine.length ? `<section class="card"><h2>내가 제출한 결과</h2>${mine.map(s => subRow(s, s.status === 'pending' && !isConfirmed(s) ? `<span class="tag mute">확인 대기</span><button class="btn" data-cancel="${s.id}">취소</button>` : '')).join('')}</section>` : ''}
+  ${myFixes.length ? `<section class="card"><h2>내가 올린 수정·삭제 요청</h2>${myFixes.map(f => fixRow(f, f.status === 'pending' && !isConfirmed(f) ? `<span class="tag mute">확인 대기</span><button class="btn" data-cancel="${f.id}">취소</button>` : '')).join('')}</section>` : ''}
+  ${doneFixes.length ? `<section class="card"><h2>반영된 수정·삭제 <span class="mute">v2에 반영됨 · 운영진은 공식 DB에도 옮겨 주세요</span></h2>${doneFixes.map(f => fixRow(f)).join('')}</section>` : ''}
   ${others.length ? `<section class="card"><h2>최근 제출된 결과 <span class="mute">전체 공개</span></h2>${others.map(s => subRow(s)).join('')}</section>` : ''}
   </div>`;
 
@@ -92,7 +106,7 @@ function renderForm(app, box) {
       B = d.kind === 'pro' ? tog(2, t2) : `<div class="small">${t2.map(esc).join(' · ') || '팀2'}</div>`;
       if (t1.length && t2.length) e = expected(t1.reduce((a, x) => a + R(x), 0) / t1.length, t2.reduce((a, x) => a + R(x), 0) / t2.length);
     }
-    return `<div style="display:grid;grid-template-columns:28px 130px minmax(0,1fr) minmax(0,1fr) 120px 32px;gap:8px;align-items:center;padding:8px 0;border-top:1px solid #1D2029">
+    return `<div class="fset" style="display:grid;grid-template-columns:28px 130px minmax(0,1fr) minmax(0,1fr) 120px 32px;gap:8px;align-items:center;padding:8px 0;border-top:1px solid #1D2029">
       <span class="num mute">${i + 1}</span>
       <select class="fld" data-map="${i}" aria-label="맵">${allMaps.map(m => `<option ${s.map === m ? 'selected' : ''}>${esc(m)}</option>`).join('')}</select>
       <div style="display:flex;flex-direction:column;gap:4px">${A}<button ${pick(1)}>팀1 승</button></div>

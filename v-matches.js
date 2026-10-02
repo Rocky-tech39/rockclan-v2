@@ -1,5 +1,7 @@
 import { esc, fmtD, go, sign } from './util.js';
 import { sides } from './rating.js';
+import { store } from './store.js';
+import { timeAgo } from './util.js';
 
 export function render(app, el, p) {
   const eng = app.engine('v2', 'all');
@@ -53,12 +55,14 @@ export function render(app, el, p) {
   </div>`;
 
   el.querySelectorAll('[data-day]').forEach(b => b.onclick = () => set('date', b.dataset.day));
+  { const dd = el.querySelector('.days'), on = dd && dd.querySelector('.on'); if (on) dd.scrollLeft = on.offsetLeft - dd.offsetLeft - dd.clientWidth / 2 + on.clientWidth / 2; }
   el.querySelector('#mKind').onchange = e => set('kind', e.target.value);
   el.querySelector('#mDate').onchange = e => set('date', e.target.value);
   const cl = el.querySelector('[data-clear]'); if (cl) cl.onclick = e => { e.preventDefault(); set('q', ''); };
   const qi = el.querySelector('#mQ');
   qi.onkeydown = e => { if (e.key === 'Enter') set('q', qi.value.trim()); };
   qi.onchange = () => set('q', qi.value.trim());
+  el.querySelectorAll('[data-fix]').forEach(b => b.onclick = () => openFix(app, app.matches.find(m => String(m.id) === b.dataset.fix)));
   el.querySelectorAll('[data-toggle]').forEach(b => b.onclick = () => { const t = el.querySelector('#' + b.dataset.toggle); t.hidden = !t.hidden; b.textContent = t.hidden ? '세트 보기 ▾' : '접기 ▴'; });
 }
 
@@ -85,8 +89,8 @@ function card(app, eng, m, showDate) {
     const dupOf = m.dupOf;
     return `<article class="mcard ${dupOf ? 'dup' : ''}">
       <div class="mhead"><div class="row"><span class="tag acc">프로리그</span><span class="mute small">${showDate ? fmtD(m.date) + ' · ' : ''}${m.sets.length}세트</span>
-        ${dupOf ? '<span class="tag warn">중복 의심 · 같은 날 같은 구성·결과 기록이 이미 있음</span>' : ''}${m.src === 'submitted' ? '<span class="tag ok">제출 반영</span>' : ''}</div>
-        ${m.sets.length ? `<button class="btn" data-toggle="s-${m.id}" style="min-height:34px;padding:4px 12px">${dupOf ? '세트 보기 ▾' : '접기 ▴'}</button>` : ''}</div>
+        ${dupOf ? '<span class="tag warn">중복 의심 · 같은 날 같은 구성·결과 기록이 이미 있음</span>' : ''}${m.src === 'submitted' ? '<span class="tag ok">제출 반영</span>' : ''}${fixTag(app, m)}</div>
+        <div class="row">${fixBtn(app, m)}${m.sets.length ? `<button class="btn" data-toggle="s-${m.id}" style="min-height:34px;padding:4px 12px">${dupOf ? '세트 보기 ▾' : '접기 ▴'}</button>` : ''}</div></div>
       <div class="mscore"><div class="${m.win1 ? 'win' : 'lose'}"><div class="small mute">TEAM 1</div>${m.t1.map(P).join(' · ')}</div>
         <div class="s num">${esc(sc1)} <span style="color:var(--mute2)">:</span> ${esc(sc2)}</div>
         <div class="${!m.win1 ? 'win' : 'lose'}" style="text-align:right"><div class="small mute">TEAM 2</div>${m.t2.map(P).join(' · ')}</div></div>
@@ -95,5 +99,66 @@ function card(app, eng, m, showDate) {
         ${m.sets.map((s, i) => setRow(eng, s, i)).join('')}
       </div></article>`;
   }
-  return `<article class="mcard"><div class="mhead" style="padding:8px 18px"><div class="row"><span class="tag mute">${m.kind === 'solo' ? '개인전' : '팀전'}</span><span class="small mute">${showDate ? fmtD(m.date) : ''}</span>${m.src === 'submitted' ? '<span class="tag ok">제출 반영</span>' : ''}</div></div>${setRow(eng, m, 0)}</article>`;
+  return `<article class="mcard"><div class="mhead" style="padding:8px 18px"><div class="row"><span class="tag mute">${m.kind === 'solo' ? '개인전' : '팀전'}</span><span class="small mute">${showDate ? fmtD(m.date) : ''}</span>${m.src === 'submitted' ? '<span class="tag ok">제출 반영</span>' : ''}${fixTag(app, m)}</div>${fixBtn(app, m)}</div>${setRow(eng, m, 0)}</article>`;
+}
+
+function fixTag(app, m) {
+  const pend = app.pendingFix.get(String(m.id));
+  if (pend) return `<span class="tag warn">${pend.sets.fix.del && pend.sets.fix.del.includes(m.id) ? '삭제' : '수정'} 요청 중 · 확인 대기</span>`;
+  if (m.fixed || (m.sets || []).some(x => x.fixed)) return '<span class="tag info">수정 반영됨</span>';
+  return '';
+}
+function fixBtn(app, m) {
+  if (app.pendingFix.has(String(m.id))) return '';
+  return `<button class="btn" data-fix="${esc(m.id)}" style="min-height:34px;padding:4px 12px;font-size:13px">수정·삭제 요청</button>`;
+}
+
+function openFix(app, m) {
+  if (!m) return;
+  if (!app.me) { app.toast('먼저 내 선수를 설정해 주세요'); return app.pickMe(); }
+  const rows = m.kind === 'pro' ? m.sets : [m];
+  const maps = [...new Set([...(app.maps || []).map(x => x.map_name), '투혼', '폴리포이드', '폴스타', '녹아웃', '옥타곤', '애티튜드', '2:2생컨', '2:2투혼', '3:3헌터', '3:3생컨', '4:4헌터', '투혼(에결)'])];
+  const label = x => x.kind === 'solo' ? `${x.p1} vs ${x.p2}` : `${x.t1.join('·')} vs ${x.t2.join('·')}`;
+  const winner = x => x.kind === 'solo' ? (x.win1 ? x.p1 : x.p2) : (x.win1 ? x.t1 : x.t2).join('·');
+  app.modal(`<h3 id="modalTitle">경기 기록 수정·삭제 요청</h3>
+    <p class="mute small">${fmtD(m.date)} ${m.kind === 'pro' ? `프로리그 ${esc(m.t1.join('·'))} vs ${esc(m.t2.join('·'))}` : esc(label(m))} · 경기에 뛴 다른 선수 1명이 확인하면 v2에 반영됩니다(48시간 무응답 시 자동).</p>
+    <label class="row" style="margin:10px 0;gap:8px;cursor:pointer"><input type="checkbox" id="fxAll" style="width:18px;height:18px;accent-color:var(--acc)"> <b>이 경기 전체 삭제</b> <span class="small mute">(잘못 입력됐거나 중복)</span></label>
+    <div id="fxRows">${rows.map((x, i) => `<div style="border-top:1px solid var(--line);padding:10px 0;display:flex;flex-direction:column;gap:6px">
+      <div class="small"><b>${m.kind === 'pro' ? (i + 1) + '세트 · ' : ''}${esc(label(x))}</b> <span class="mute">· 기록상 승자 ${esc(winner(x))}</span></div>
+      <div class="row" style="gap:12px">
+        <label class="row small" style="gap:6px;cursor:pointer"><input type="checkbox" data-swap="${esc(x.id)}" style="width:16px;height:16px;accent-color:var(--acc)"> 승자 바꾸기</label>
+        <label class="row small" style="gap:6px">맵 <select class="fld" data-map="${esc(x.id)}" style="min-height:34px;padding:4px 8px">${maps.map(mp => `<option ${mp === x.map ? 'selected' : ''}>${esc(mp)}</option>`).join('')}</select></label>
+        ${m.kind === 'pro' ? `<label class="row small" style="gap:6px;cursor:pointer"><input type="checkbox" data-del="${esc(x.id)}" style="width:16px;height:16px;accent-color:var(--acc)"> 이 세트 삭제</label>` : ''}
+      </div></div>`).join('')}</div>
+    <label class="lbl" style="margin-top:8px">사유 (필수)<textarea id="fxWhy" class="fld" maxlength="300" placeholder="예: 3세트 승자가 반대로 입력됐어요 / 같은 경기가 두 번 입력됐어요"></textarea></label>
+    <div class="row" style="justify-content:flex-end;margin-top:12px"><button class="btn" data-close>취소</button><button class="btn pri" id="fxGo">요청 올리기</button></div>`, md => {
+    const all = md.querySelector('#fxAll');
+    all.onchange = () => { md.querySelector('#fxRows').style.opacity = all.checked ? .35 : 1; };
+    md.querySelector('#fxGo').onclick = async () => {
+      const reason = md.querySelector('#fxWhy').value.trim();
+      if (!reason) return app.toast('사유를 적어 주세요');
+      const del = [], edit = {}, parts = [];
+      if (all.checked) { del.push(m.id, ...rows.filter(x => x.id !== m.id).map(x => x.id)); parts.push('경기 전체 삭제'); }
+      else {
+        rows.forEach((x, i) => {
+          const pre = m.kind === 'pro' ? `${i + 1}세트 ` : '';
+          if (md.querySelector(`[data-del="${CSS.escape(String(x.id))}"]`)?.checked) { del.push(x.id); parts.push(pre + '삭제'); return; }
+          const e = {};
+          if (md.querySelector(`[data-swap="${CSS.escape(String(x.id))}"]`).checked) { e.swap = true; parts.push(pre + '승자 변경'); }
+          const mp = md.querySelector(`[data-map="${CSS.escape(String(x.id))}"]`).value;
+          if (mp !== x.map) { e.map = mp; parts.push(pre + `맵 → ${mp}`); }
+          if (Object.keys(e).length) edit[x.id] = e;
+        });
+        if (m.kind === 'pro' && (del.length || Object.keys(edit).length)) edit[m.id] = { ...(edit[m.id] || {}), recount: true };
+      }
+      if (!del.length && !Object.keys(edit).length) return app.toast('바꿀 내용을 선택해 주세요');
+      const players = [...new Set(m.kind === 'pro' ? [...m.t1, ...m.t2] : sides(m).flat())];
+      const btn = md.querySelector('#fxGo'); btn.disabled = true;
+      try {
+        await store.insert('submissions', { match_date: m.date, kind: 'solo', team1: players, team2: [], status: 'pending', submitter: app.me,
+          sets: { fix: { target: m.id, del, edit, reason, summary: parts.join(', '), title: m.kind === 'pro' ? `프로리그 ${m.t1.join('·')} vs ${m.t2.join('·')}` : label(m) } } });
+        app.closeModal(); app.toast('수정 요청을 올렸어요. 상대 선수 확인을 기다립니다'); await app.reloadSubs();
+      } catch (e) { app.toast(e.message); btn.disabled = false; }
+    };
+  });
 }
