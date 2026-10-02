@@ -1,5 +1,5 @@
-import { esc, pct, sign, signColor, tierBadge, raceBadge, raceLabel, TIER_COLOR, RACE_KO, fmtD, go, expected, formPills, todayKST, C, TIERS } from './util.js?v=20261002j';
-import { seasonTable, sides } from './rating.js?v=20261002j';
+import { esc, pct, sign, signColor, tierBadge, raceBadge, raceLabel, TIER_COLOR, RACE_KO, fmtD, go, expected, formPills, todayKST, C, TIERS } from './util.js?v=20261002k';
+import { seasonTable, sides, soloOdds } from './rating.js?v=20261002k';
 
 export function render(app, el, p) {
   const id = p.get('id') || (p.get('pick') ? '' : app.me);
@@ -37,8 +37,7 @@ export function render(app, el, p) {
   const curR = me ? me.r : (eng.R.get(id) || 1000);
   const oppList = table.filter(r => r.id !== id).sort((a, b) => b.r - a.r);
   const vs = p.get('vs') && oppList.find(r => r.id === p.get('vs')) || (rv[0] && oppList.find(r => r.id === rv[0].k)) || oppList[0];
-  const e = vs ? expected(curR, vs.r) : 0.5;
-  const K = C.V2.K_SOLO;
+  const { e, K } = vs ? soloOdds(app, app.method, eng, id, vs.id, season.key, curR, vs.r) : { e: 0.5, K: 12 };
 
   const seasonOpts = app.seasonsWithData().map(s => `<option value="${s.key}" ${s.key === season.key ? 'selected' : ''}>${esc(s.label)}</option>`).join('');
   const chart = ratingChart(hist);
@@ -70,7 +69,7 @@ export function render(app, el, p) {
       <div style="border-top:1px solid var(--line);padding-top:12px;margin-top:4px">
         <h2 style="font-size:14px">승리 확률 계산기</h2>
         <label class="sr" for="pVs">상대</label><select id="pVs" class="fld" style="width:100%">${oppList.map(o => `<option value="${esc(o.id)}" ${vs && o.id === vs.id ? 'selected' : ''}>${esc(o.id)} (${Math.round(o.r)})</option>`).join('')}</select>
-        ${vs ? `<div class="row" style="margin-top:10px;gap:8px;flex-wrap:nowrap"><span class="small num">${esc(id)}</span><div style="flex:1;height:12px;display:flex;border-radius:4px;overflow:hidden"><i style="width:${Math.round(e * 100)}%;background:var(--acc2)"></i><i style="flex:1;background:var(--line3)"></i></div><span class="small num">${esc(vs.id)}</span></div>
+        ${vs ? `<div class="row" style="margin-top:10px;gap:8px;flex-wrap:nowrap"><span class="small num">${esc(id)}</span><div style="flex:1;height:12px;display:flex;border-radius:4px;overflow:hidden"><i style="width:${Math.round(e * 100)}%;background:linear-gradient(90deg,#1E46D8,#5B8CFF)"></i><i style="flex:1;background:linear-gradient(90deg,#FF9A6B,#F0542A)"></i></div><span class="small num">${esc(vs.id)}</span></div>
         <div class="num" style="font-size:22px;font-weight:700;margin-top:6px">${Math.round(e * 100)}% <span class="small mute" style="font-weight:500">이기면 +${(K * (1 - e)).toFixed(1)} · 지면 −${(K * e).toFixed(1)}</span></div>` : ''}
       </div></div>
   </section>

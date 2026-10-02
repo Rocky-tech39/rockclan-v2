@@ -1,5 +1,5 @@
-import { esc, pct, sign, tierBadge, raceBadge, raceLabel, TIER_COLOR, TIERS, RACE_KO, fmtD, go, expected, C, todayKST } from './util.js?v=20261002j';
-import { sides, seasonTable } from './rating.js?v=20261002j';
+import { esc, pct, sign, tierBadge, raceBadge, raceLabel, TIER_COLOR, TIERS, RACE_KO, fmtD, go, expected, C, todayKST } from './util.js?v=20261002k';
+import { sides, seasonTable, soloOdds } from './rating.js?v=20261002k';
 
 export function render(app, el, p) {
   const sk = p.get('season') || 'all';
@@ -19,8 +19,8 @@ export function render(app, el, p) {
 
   const h2h = solos.filter(m => (m.p1 === a && m.p2 === b) || (m.p1 === b && m.p2 === a));
   const aw = h2h.filter(m => (m.win1 ? m.p1 : m.p2) === a).length, bw = h2h.length - aw;
-  const ra = eng.R.get(a) ?? 1000, rb = eng.R.get(b) ?? 1000;
-  const e = expected(ra, rb), K = C.V2.K_SOLO;
+  const { ra, rb, e, K } = soloOdds(app, app.method, eng, a, b, app.current.key);
+  const scoreName = app.method === 'v2' ? '레이팅' : 'ELO';
   const winner = m => m.win1 ? m.p1 : m.p2;
 
   // 맵별
@@ -74,13 +74,14 @@ export function render(app, el, p) {
   <section class="card">
     <div class="grid2" style="gap:12px"><label class="lbl">내 선수<select id="aA" class="fld">${opt(a)}</select></label><label class="lbl">상대 선수<select id="aB" class="fld">${opt(b)}</select></label></div>
     <div class="vs">
-      <div><a href="#/player?id=${encodeURIComponent(a)}" style="font:700 28px var(--num);color:var(--text)">${esc(a)}</a><div class="small mute">${tierBadge(app.tierAt(a, curSk))} · ${raceLabel(pa.race)} · <span class="num">${Math.round(ra)}</span></div></div>
+      <div><a href="#/player?id=${encodeURIComponent(a)}" style="font:700 28px var(--num);color:var(--text)">${esc(a)}</a><div class="small mute">${tierBadge(app.tierAt(a, curSk))} · ${raceLabel(pa.race)} · ${scoreName} <b class="num">${Math.round(ra)}</b></div></div>
       <div style="text-align:center"><div class="num" style="font:700 52px var(--num);line-height:1"><span style="color:var(--acc2)">${aw}</span> <span style="color:var(--mute2)">:</span> ${bw}</div><div class="small mute">개인전 ${h2h.length}경기${h2h.length && h2h.length < 15 ? ' · <span style="color:var(--warn)">표본 적음</span>' : ''}</div></div>
-      <div style="text-align:right"><a href="#/player?id=${encodeURIComponent(b)}" style="font:700 28px var(--num);color:var(--text)">${esc(b)}</a><div class="small mute">${tierBadge(app.tierAt(b, curSk))} · ${raceLabel(pb.race)} · <span class="num">${Math.round(rb)}</span></div></div>
+      <div style="text-align:right"><a href="#/player?id=${encodeURIComponent(b)}" style="font:700 28px var(--num);color:var(--text)">${esc(b)}</a><div class="small mute">${tierBadge(app.tierAt(b, curSk))} · ${raceLabel(pb.race)} · ${scoreName} <b class="num">${Math.round(rb)}</b></div></div>
     </div>
-    <div class="row" style="justify-content:space-between;font-size:13px"><span>다음 경기 예상 승률 <span class="mute">(현재 레이팅 기준)</span></span><b class="num">${Math.round(e * 100)}% : ${100 - Math.round(e * 100)}%</b></div>
-    <div style="height:12px;display:flex;border-radius:6px;overflow:hidden;margin:6px 0"><i style="width:${Math.round(e * 100)}%;background:var(--acc2)"></i><i style="flex:1;background:var(--line3)"></i></div>
+    <div class="row" style="justify-content:space-between;font-size:13px"><span>다음 경기 예상 승률 <span class="mute">(${esc(app.current.label)} 현재 ${scoreName}${app.method === 'v2' ? '' : ' + 티어 보정'} 기준)</span></span><b class="num">${Math.round(e * 100)}% : ${100 - Math.round(e * 100)}%</b></div>
+    <div style="height:12px;display:flex;border-radius:6px;overflow:hidden;margin:6px 0"><i style="width:${Math.round(e * 100)}%;background:linear-gradient(90deg,#1E46D8,#5B8CFF)"></i><i style="flex:1;background:linear-gradient(90deg,#FF9A6B,#F0542A)"></i></div>
     <div class="small mute">${esc(a)}가 이기면 <span class="up num">+${(K * (1 - e)).toFixed(1)}</span> · 지면 <span class="down num">−${(K * e).toFixed(1)}</span></div>
+    <div class="small mute" style="margin-top:6px;line-height:1.6">이름 옆 ${scoreName} 점수는 <b>${esc(app.current.label)} 시즌 현재 점수</b>예요. ${app.method === 'v2' ? '' : '기존 ELO는 시즌마다 1000점에서 다시 시작해서, 시즌 초반엔 다들 1000점 근처입니다. 예상 승률은 여기에 티어 차이(단계당 40점)를 더해 계산합니다. '}위쪽 기간(통산/시즌)은 맞대결·종족전·맵 기록에만 적용돼요.</div>
   </section>
   <section class="grid2">
     <div class="card"><h2>스카우팅 포인트</h2>${tips.length ? tips.map((t, i) => `<div class="${i === 0 ? 'note' : 'tile'}" style="margin-bottom:8px;font-size:14px;line-height:1.6;${i ? 'color:var(--text)' : ''}">${t}</div>`).join('') : '<div class="mute">맞대결 기록이 없습니다</div>'}

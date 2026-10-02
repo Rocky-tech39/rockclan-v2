@@ -1,5 +1,5 @@
-import { esc, timeAgo, go } from './util.js?v=20261002j';
-import { store, isDemo } from './store.js?v=20261002j';
+import { esc, timeAgo, go } from './util.js?v=20261002k';
+import { store, isDemo } from './store.js?v=20261002k';
 
 export const SCREENS = { ranking: '랭킹', matches: '경기 기록', analysis: '전력 분석', player: '선수 프로필', submit: '결과 제출·확인', board: '의견 게시판', guide: '안내', etc: '기타·전체' };
 export const CATS = ['좋아요', '불편해요', '버그', '아이디어', '레이팅 로직', '기타'];

@@ -1,6 +1,7 @@
-import { esc, fmtD, timeAgo, todayKST, expected, C } from './util.js?v=20261002j';
-import { store, isDemo } from './store.js?v=20261002j';
-import { isConfirmed } from './data.js?v=20261002j';
+import { esc, fmtD, timeAgo, todayKST, expected, C } from './util.js?v=20261002k';
+import { store, isDemo } from './store.js?v=20261002k';
+import { isConfirmed } from './data.js?v=20261002k';
+import { soloOdds } from './rating.js?v=20261002k';
 
 let draft = null;
 // 맵 이름 앞의 "2:2", "3:3", "4:4" → 팀당 인원 (없으면 0 = 개인전 맵)
@@ -127,7 +128,7 @@ function renderForm(app, box) {
     if (s.type === 'solo') {
       A = `<select class="fld" data-sp="${i}|p1" aria-label="팀1 선수" style="width:100%"><option value="">팀1 선수</option>${d.t1.map(x => `<option ${s.p1 === x ? 'selected' : ''}>${esc(x)}</option>`).join('')}</select>`;
       B = `<select class="fld" data-sp="${i}|p2" aria-label="팀2 선수" style="width:100%"><option value="">팀2 선수</option>${d.t2.map(x => `<option ${s.p2 === x ? 'selected' : ''}>${esc(x)}</option>`).join('')}</select>`;
-      if (s.p1 && s.p2) e = expected(R(s.p1), R(s.p2));
+      if (s.p1 && s.p2) e = soloOdds(app, app.method, eng, s.p1, s.p2, app.current.key).e;
     } else {
       const t1 = s.t1 || [], t2 = s.t2 || [];
       const n = teamSize(s.map);

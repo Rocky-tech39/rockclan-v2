@@ -1,4 +1,4 @@
-import { C, tierIdx, expected, seasonOf } from './util.js?v=20261002j';
+import { C, tierIdx, expected, seasonOf } from './util.js?v=20261002k';
 
 // 한 경기 → 양쪽 선수 목록
 export const sides = m => m.kind === 'solo' ? [[m.p1], [m.p2]] : [m.t1, m.t2];
@@ -137,3 +137,13 @@ export function proTable(matches, season, ctx) {
 
 function addDaysLocal(iso, n) { const d = new Date(iso + 'T00:00:00Z'); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10); }
 function daysBetween(a, b) { return (new Date(b + 'T00:00:00Z') - new Date(a + 'T00:00:00Z')) / 86400000; }
+
+// 개인전 다음 경기 예상 — 점수 방식에 맞춰 계산 (기존 ELO는 티어 보정 단계당 40점, K12)
+export function soloOdds(ctx, method, eng, a, b, sk, ra0, rb0) {
+  const P = C.V2;
+  const seed = id => method === 'v2' ? 1000 + (tierIdx(ctx.tierAt(id, sk)) - 2) * P.TIER_STEP : 1000;
+  const ra = ra0 ?? eng.R.get(a) ?? seed(a), rb = rb0 ?? eng.R.get(b) ?? seed(b);
+  if (method === 'v2') return { ra, rb, e: expected(ra, rb), K: P.K_SOLO };
+  const ea = ra + tierIdx(ctx.tierAt(a, sk)) * 40, eb = rb + tierIdx(ctx.tierAt(b, sk)) * 40;
+  return { ra, rb, e: expected(ea, eb), K: 12 };
+}
