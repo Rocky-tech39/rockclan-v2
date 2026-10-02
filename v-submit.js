@@ -1,8 +1,22 @@
-import { esc, fmtD, timeAgo, todayKST, expected, C } from './util.js?v=20261002g';
-import { store, isDemo } from './store.js?v=20261002g';
-import { isConfirmed } from './data.js?v=20261002g';
+import { esc, fmtD, timeAgo, todayKST, expected, C } from './util.js?v=20261002h';
+import { store, isDemo } from './store.js?v=20261002h';
+import { isConfirmed } from './data.js?v=20261002h';
 
 let draft = null;
+// 맵 이름 앞의 "2:2", "3:3", "4:4" → 팀당 인원 (없으면 0 = 개인전 맵)
+const teamSize = map => { const m = /^(\d)\s*:\s*(\d)/.exec(map || ''); return m ? +m[1] : 0; };
+// 세트 맵이 바뀌면 개인전/팀전 형식을 맵에 맞춤
+function fitSet(d, s) {
+  const n = teamSize(s.map);
+  if (n >= 2) {
+    if (s.type !== 'team') { s.type = 'team'; s.t1 = []; s.t2 = []; delete s.p1; delete s.p2; }
+    s.t1 = (s.t1 || []).slice(0, n); s.t2 = (s.t2 || []).slice(0, n);
+    if (!s.t1.length && d.t1.length === n) s.t1 = d.t1.slice();
+    if (!s.t2.length && d.t2.length === n) s.t2 = d.t2.slice();
+  } else if (s.type === 'team' && d.kind === 'pro') {
+    s.type = 'solo'; s.p1 = ''; s.p2 = ''; delete s.t1; delete s.t2;
+  }
+}
 const newDraft = () => ({ kind: 'pro', date: todayKST(), t1: [], t2: [], sets: [], confirmer: '' });
 
 export async function render(app, el, p) {
@@ -101,7 +115,8 @@ function renderForm(app, box) {
       if (s.p1 && s.p2) e = expected(R(s.p1), R(s.p2));
     } else {
       const t1 = s.t1 || [], t2 = s.t2 || [];
-      const tog = (team, arr) => `<div class="row" style="gap:4px">${d['t' + team].map(x => `<button type="button" class="chip ${arr.includes(x) ? 'on' : ''}" data-tt="${i}|t${team}|${esc(x)}" style="min-height:32px;padding:4px 10px">${esc(x)}</button>`).join('') || '<span class="small mute">팀 선수를 먼저 넣으세요</span>'}</div>`;
+      const n = teamSize(s.map);
+      const tog = (team, arr) => `<div class="row" style="gap:4px">${d['t' + team].map(x => `<button type="button" class="chip ${arr.includes(x) ? 'on' : ''}" data-tt="${i}|t${team}|${esc(x)}" style="min-height:32px;padding:4px 10px">${arr.includes(x) ? '✓ ' : ''}${esc(x)}</button>`).join('') || '<span class="small mute">위 팀 칸에 선수를 먼저 넣으세요</span>'}<span class="small ${n && arr.length === n ? 'up' : 'mute'}" style="margin-left:4px">${n ? `${arr.length}/${n}명` : `${arr.length}명`}</span></div>`;
       A = d.kind === 'pro' ? tog(1, t1) : `<div class="small">${t1.map(esc).join(' · ') || '팀1'}</div>`;
       B = d.kind === 'pro' ? tog(2, t2) : `<div class="small">${t2.map(esc).join(' · ') || '팀2'}</div>`;
       if (t1.length && t2.length) e = expected(t1.reduce((a, x) => a + R(x), 0) / t1.length, t2.reduce((a, x) => a + R(x), 0) / t2.length);
@@ -139,12 +154,18 @@ function renderForm(app, box) {
   box.querySelector('#fDate').onchange = e => { d.date = e.target.value; rerender(); };
   box.querySelectorAll('[data-add]').forEach(s => s.onchange = () => { const team = s.dataset.add; if (s.value === '__new') { s.value = ''; return app.registerPlayer(id => { d['t' + team].push(id); rerender(); }); } if (s.value) d['t' + team].push(s.value); rerender(); });
   box.querySelectorAll('[data-rm]').forEach(b => b.onclick = () => { const [t, id] = b.dataset.rm.split('|'); d['t' + t] = d['t' + t].filter(x => x !== id); d.sets.forEach(s => { if (s.p1 === id) s.p1 = ''; if (s.p2 === id) s.p2 = ''; if (s.t1) s.t1 = s.t1.filter(x => x !== id); if (s.t2) s.t2 = s.t2.filter(x => x !== id); }); rerender(); });
-  box.querySelectorAll('[data-map]').forEach(s => s.onchange = () => { d.sets[+s.dataset.map].map = s.value; });
+  box.querySelectorAll('[data-map]').forEach(s => s.onchange = () => { const st = d.sets[+s.dataset.map]; st.map = s.value; if (d.kind !== 'solo') fitSet(d, st); rerender(); });
   box.querySelectorAll('[data-sp]').forEach(s => s.onchange = () => { const [i, k] = s.dataset.sp.split('|'); d.sets[+i][k] = s.value; rerender(); });
-  box.querySelectorAll('[data-tt]').forEach(b => b.onclick = () => { const [i, k, id] = b.dataset.tt.split('|'); const arr = d.sets[+i][k] || []; d.sets[+i][k] = arr.includes(id) ? arr.filter(x => x !== id) : [...arr, id]; rerender(); });
+  box.querySelectorAll('[data-tt]').forEach(b => b.onclick = () => {
+    const [i, k, id] = b.dataset.tt.split('|'); const st = d.sets[+i]; const arr = st[k] || []; const n = teamSize(st.map);
+    if (arr.includes(id)) st[k] = arr.filter(x => x !== id);
+    else if (n && arr.length >= n) { if (n === 1) st[k] = [id]; else return app.toast(`${st.map}은 팀당 ${n}명이에요. 먼저 한 명을 빼 주세요`); }
+    else st[k] = [...arr, id];
+    rerender();
+  });
   box.querySelectorAll('[data-win]').forEach(b => b.onclick = () => { const [i, side] = b.dataset.win.split('|'); d.sets[+i].side = +side; rerender(); });
   box.querySelectorAll('[data-del]').forEach(b => b.onclick = () => { d.sets.splice(+b.dataset.del, 1); rerender(); });
-  box.querySelectorAll('[data-addset]').forEach(b => b.onclick = () => { const t = b.dataset.addset; d.sets.push(t === 'solo' ? { type: 'solo', map: maps[0], p1: '', p2: '', side: 0 } : { type: 'team', map: teamMaps[0], t1: [], t2: [], side: 0 }); rerender(); });
+  box.querySelectorAll('[data-addset]').forEach(b => b.onclick = () => { const t = b.dataset.addset; const st = t === 'solo' ? { type: 'solo', map: maps[0], p1: '', p2: '', side: 0 } : { type: 'team', map: teamMaps.find(m => teamSize(m) === Math.min(d.t1.length, d.t2.length)) || teamMaps[0], t1: [], t2: [], side: 0 }; if (t === 'team') fitSet(d, st); d.sets.push(st); rerender(); });
   box.querySelector('#fConf').onchange = e => { d.confirmer = e.target.value; };
   box.querySelector('#fGo').onclick = async () => {
     const btn = box.querySelector('#fGo'); btn.disabled = true;
@@ -162,7 +183,9 @@ function validate(d) {
   if (!d.t1.length || !d.t2.length) e.push('양쪽 선수를 넣으세요');
   d.sets.forEach((s, i) => {
     if (s.type === 'solo' && (!s.p1 || !s.p2)) e.push(`${i + 1}세트 선수를 고르세요`);
+    const n = teamSize(s.map);
     if (s.type === 'team' && (!(s.t1 || []).length || !(s.t2 || []).length)) e.push(`${i + 1}세트 출전 선수를 고르세요`);
+    else if (s.type === 'team' && n && ((s.t1 || []).length !== n || (s.t2 || []).length !== n)) e.push(`${i + 1}세트(${s.map})는 팀당 ${n}명씩 고르세요`);
     if (!s.side) e.push(`${i + 1}세트 승자를 누르세요`);
   });
   return e;
