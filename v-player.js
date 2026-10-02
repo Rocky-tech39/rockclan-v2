@@ -1,5 +1,5 @@
-import { esc, pct, sign, signColor, tierBadge, TIER_COLOR, RACE_KO, fmtD, go, expected, formPills, todayKST, C } from './util.js';
-import { seasonTable, sides } from './rating.js';
+import { esc, pct, sign, signColor, tierBadge, raceBadge, raceLabel, TIER_COLOR, RACE_KO, fmtD, go, expected, formPills, todayKST, C } from './util.js?v=20261002c';
+import { seasonTable, sides } from './rating.js?v=20261002c';
 
 export function render(app, el, p) {
   const id = p.get('id') || app.me;
@@ -52,8 +52,8 @@ export function render(app, el, p) {
   <div class="stack">
   <section class="card ph">
     <div class="row" style="gap:18px;flex-wrap:nowrap">
-      <div class="avatar" style="border-color:${TIER_COLOR[tier]};color:${TIER_COLOR[tier]}">${esc((meta.race || '?')[0])}</div>
-      <div><div class="row"><h1 class="title" style="font-size:30px">${esc(id)}</h1>${tierBadge(tier)}<span class="mute small">${esc(RACE_KO[meta.race] || meta.race || '')}</span></div>
+      <div class="avatar" style="border-color:${TIER_COLOR[tier]}">${raceBadge(meta.race, 'lg')}</div>
+      <div><div class="row"><h1 class="title" style="font-size:30px">${esc(id)}</h1>${tierBadge(tier)}<span class="mute small">${raceLabel(meta.race)}</span></div>
       <div class="row" style="margin-top:6px">${me && me.bestSoloStreak >= 3 ? `<span class="tag acc">시즌 최장 ${me.bestSoloStreak}연승</span>` : ''}${me && me.streak >= 2 ? `<span class="tag info">현재 ${me.streak}연승</span>` : ''}${me && me.streak <= -3 ? `<span class="tag mute">${-me.streak}연패 중</span>` : ''}${me && !me.eligible ? '<span class="tag mute">배치중</span>' : ''}</div></div>
     </div>
     ${me ? `<div class="kv">
@@ -66,7 +66,7 @@ export function render(app, el, p) {
   <section class="grid2" style="grid-template-columns:minmax(0,2fr) minmax(0,1fr)">
     <div class="card"><h2>레이팅 추이 <span class="mute">${esc(season.label)} · ${hist.length}경기 · 시작 ${Math.round(hist[0].pre)} → ${Math.round(me.r)} <span style="color:${signColor(me.r - hist[0].pre)}">${sign(me.r - hist[0].pre)}</span></span></h2>${chart}</div>
     <div class="card"><h2>상대 종족별 <span class="mute">개인전</span></h2>
-      ${['Protoss', 'Terran', 'Zerg'].map(r => { const [w, l] = vr[r] || [0, 0]; return `<div style="margin-bottom:12px"><div class="row" style="justify-content:space-between;font-size:14px"><b>vs ${RACE_KO[r]}</b><span class="num">${w}-${l} · <b>${pct(w, w + l)}%</b>${w + l < 10 ? ' <span class="small" style="color:var(--warn)">표본 적음</span>' : ''}</span></div><div class="hbar"><i style="width:${pct(w, w + l)}%;background:var(--up)"></i></div></div>`; }).join('')}
+      ${['Protoss', 'Terran', 'Zerg'].map(r => { const [w, l] = vr[r] || [0, 0]; return `<div style="margin-bottom:12px"><div class="row" style="justify-content:space-between;font-size:14px"><b class="rlabel">vs ${raceBadge(r, 'sm')}${RACE_KO[r]}</b><span class="num">${w}-${l} · <b>${pct(w, w + l)}%</b>${w + l < 10 ? ' <span class="small" style="color:var(--warn)">표본 적음</span>' : ''}</span></div><div class="hbar"><i style="width:${pct(w, w + l)}%;background:var(--up)"></i></div></div>`; }).join('')}
       <div style="border-top:1px solid var(--line);padding-top:12px;margin-top:4px">
         <h2 style="font-size:14px">승리 확률 계산기</h2>
         <label class="sr" for="pVs">상대</label><select id="pVs" class="fld" style="width:100%">${oppList.map(o => `<option value="${esc(o.id)}" ${vs && o.id === vs.id ? 'selected' : ''}>${esc(o.id)} (${Math.round(o.r)})</option>`).join('')}</select>
@@ -106,12 +106,12 @@ function ratingChart(hist) {
   hist.forEach((h, i) => { const mo = h.date.slice(5, 7); if (mo !== last) { months.push([i + 1, +mo + '월']); last = mo; } });
   const peak = vals.indexOf(Math.max(...vals));
   return `<svg viewBox="0 0 ${W} ${H + 18}" style="width:100%;height:auto" role="img" aria-label="레이팅 추이: ${Math.round(vals[0])}에서 ${Math.round(vals[vals.length - 1])}">
-    ${ticks.map(t => `<line x1="${X0}" x2="${X1}" y1="${y(t)}" y2="${y(t)}" stroke="#22252F"/><text x="0" y="${y(t) + 4}" fill="#9AA0AC" font-size="11" font-family="Oxanium">${t}</text>`).join('')}
-    <polygon points="${X0},${Y1} ${line} ${X1},${Y1}" fill="#FF7A1A" fill-opacity=".08"/>
-    <polyline points="${line}" fill="none" stroke="#FF8A3D" stroke-width="2.2" stroke-linejoin="round"/>
-    <circle cx="${x(peak)}" cy="${y(vals[peak])}" r="4" fill="none" stroke="#FFB37A" stroke-width="1.5"/>
-    <circle cx="${x(vals.length - 1)}" cy="${y(vals[vals.length - 1])}" r="5" fill="#FF8A3D"/>
-    ${months.map(([i, l]) => `<text x="${x(i)}" y="${H + 12}" fill="#9AA0AC" font-size="11">${l}</text>`).join('')}
+    ${ticks.map(t => `<line x1="${X0}" x2="${X1}" y1="${y(t)}" y2="${y(t)}" stroke="#E3E8F0"/><text x="0" y="${y(t) + 4}" fill="#5B6475" font-size="11" font-family="Oxanium">${t}</text>`).join('')}
+    <polygon points="${X0},${Y1} ${line} ${X1},${Y1}" fill="#2F5BEA" fill-opacity=".08"/>
+    <polyline points="${line}" fill="none" stroke="#2F5BEA" stroke-width="2.2" stroke-linejoin="round"/>
+    <circle cx="${x(peak)}" cy="${y(vals[peak])}" r="4" fill="none" stroke="#7FA0F5" stroke-width="1.5"/>
+    <circle cx="${x(vals.length - 1)}" cy="${y(vals[vals.length - 1])}" r="5" fill="#2F5BEA"/>
+    ${months.map(([i, l]) => `<text x="${x(i)}" y="${H + 12}" fill="#5B6475" font-size="11">${l}</text>`).join('')}
   </svg>`;
 }
 
@@ -120,6 +120,6 @@ function picker(app, el, p) {
   const list = [...app.players.values()].filter(x => !C.HIDE_IDS.includes(x.id) && (!q || x.id.toLowerCase().includes(q))).sort((a, b) => a.id.localeCompare(b.id));
   el.innerHTML = `<div class="head"><div><div class="eyebrow">PLAYERS</div><h1 class="title">선수</h1><div class="desc">선수를 고르면 레이팅 추이·상대 전적·맵별 성적을 볼 수 있어요</div></div>
     <input id="pkQ" class="fld" placeholder="ID 검색" value="${esc(p.get('q') || '')}" aria-label="선수 검색"></div>
-    <div class="grid4">${list.map(x => `<a class="tile" href="#/player?id=${encodeURIComponent(x.id)}"><div class="row" style="justify-content:space-between"><b>${esc(x.id)}</b>${tierBadge(x.tier)}</div><div class="s">${esc(RACE_KO[x.race] || x.race || '')}</div></a>`).join('')}</div>`;
+    <div class="grid4">${list.map(x => `<a class="tile" href="#/player?id=${encodeURIComponent(x.id)}"><div class="row" style="justify-content:space-between"><b>${esc(x.id)}</b>${tierBadge(x.tier)}</div><div class="s">${raceLabel(x.race)}</div></a>`).join('')}</div>`;
   const i = el.querySelector('#pkQ'); i.oninput = () => { const v = i.value.toLowerCase(); el.querySelectorAll('.grid4 .tile').forEach(t => t.hidden = !t.textContent.toLowerCase().includes(v)); };
 }

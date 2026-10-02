@@ -1,16 +1,17 @@
-import { C, esc, qs, go, ls, uid, seasonOf, currentSeason, todayKST } from './util.js';
-import { loadOfficial, normalize, submissionsToRows, isConfirmed, isFix, applyFixes } from './data.js';
-import { runEngine } from './rating.js';
-import { store, isDemo } from './store.js';
-import * as ranking from './v-ranking.js';
-import * as matches from './v-matches.js';
-import * as player from './v-player.js';
-import * as analysis from './v-analysis.js';
-import * as submit from './v-submit.js';
-import * as board from './v-board.js';
-import * as guide from './v-guide.js';
+import { C, esc, qs, go, ls, uid, seasonOf, currentSeason, todayKST } from './util.js?v=20261002c';
+import { loadOfficial, normalize, submissionsToRows, isConfirmed, isFix, applyFixes } from './data.js?v=20261002c';
+import { runEngine } from './rating.js?v=20261002c';
+import { store, isDemo } from './store.js?v=20261002c';
+import * as ranking from './v-ranking.js?v=20261002c';
+import * as matches from './v-matches.js?v=20261002c';
+import * as player from './v-player.js?v=20261002c';
+import * as analysis from './v-analysis.js?v=20261002c';
+import * as submit from './v-submit.js?v=20261002c';
+import * as board from './v-board.js?v=20261002c';
+import * as guide from './v-guide.js?v=20261002c';
+import * as tour from './v-tour.js?v=20261002c';
 
-const VIEWS = { ranking, matches, player, analysis, submit, board, guide };
+const VIEWS = { ranking, matches, player, analysis, submit, board, guide, tour };
 const $ = s => document.querySelector(s);
 
 const app = {
@@ -125,6 +126,8 @@ async function init() {
   updateMeBtn();
   $('#meBtn').onclick = () => app.pickMe();
   $('#fab').onclick = () => app.feedback();
+  if (!ls.get('tourSeen', 0) && !location.hash.startsWith('#/tour')) $('#tourStrip').hidden = false;
+  $('#tourX').onclick = () => { ls.set('tourSeen', 1); $('#tourStrip').hidden = true; };
   if (isDemo) $('#banner').textContent = '시연 모드: 결과 제출·의견은 이 브라우저에만 저장됩니다';
   try {
     const [off, subs] = await Promise.all([loadOfficial(), store.list('submissions', '&status=neq.canceled').catch(e => { console.warn(e); return []; })]);

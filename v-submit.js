@@ -1,6 +1,6 @@
-import { esc, fmtD, timeAgo, todayKST, expected, C } from './util.js';
-import { store, isDemo } from './store.js';
-import { isConfirmed } from './data.js';
+import { esc, fmtD, timeAgo, todayKST, expected, C } from './util.js?v=20261002c';
+import { store, isDemo } from './store.js?v=20261002c';
+import { isConfirmed } from './data.js?v=20261002c';
 
 let draft = null;
 const newDraft = () => ({ kind: 'pro', date: todayKST(), t1: [], t2: [], sets: [], confirmer: '' });
@@ -106,7 +106,7 @@ function renderForm(app, box) {
       B = d.kind === 'pro' ? tog(2, t2) : `<div class="small">${t2.map(esc).join(' · ') || '팀2'}</div>`;
       if (t1.length && t2.length) e = expected(t1.reduce((a, x) => a + R(x), 0) / t1.length, t2.reduce((a, x) => a + R(x), 0) / t2.length);
     }
-    return `<div class="fset" style="display:grid;grid-template-columns:28px 130px minmax(0,1fr) minmax(0,1fr) 120px 32px;gap:8px;align-items:center;padding:8px 0;border-top:1px solid #1D2029">
+    return `<div class="fset" style="display:grid;grid-template-columns:28px 130px minmax(0,1fr) minmax(0,1fr) 120px 32px;gap:8px;align-items:center;padding:8px 0;border-top:1px solid var(--line)">
       <span class="num mute">${i + 1}</span>
       <select class="fld" data-map="${i}" aria-label="맵">${allMaps.map(m => `<option ${s.map === m ? 'selected' : ''}>${esc(m)}</option>`).join('')}</select>
       <div style="display:flex;flex-direction:column;gap:4px">${A}<button ${pick(1)}>팀1 승</button></div>

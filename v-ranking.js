@@ -1,5 +1,5 @@
-import { C, esc, pct, sign, signColor, tierBadge, raceBadge, formPills, sparkline, sample, go, fmtD, TIERS, TIER_COLOR, addDays, todayKST } from './util.js';
-import { seasonTable, proTable, sides } from './rating.js';
+import { C, esc, pct, sign, signColor, tierBadge, raceBadge, raceLabel, formPills, sparkline, sample, go, fmtD, TIERS, TIER_COLOR, addDays, todayKST } from './util.js?v=20261002c';
+import { seasonTable, proTable, sides } from './rating.js?v=20261002c';
 
 export function render(app, el, p) {
   const season = app.seasonFromParam(p.get('season'));
@@ -74,14 +74,14 @@ export function render(app, el, p) {
   const earlyNote = isCurrent && nEvents < 40 ? `<div class="note">${esc(season.label)}는 막 시작해서 경기 ${nEvents}건뿐입니다. <a href="#/ranking?season=${app.prevSeason(season).key}">지난 시즌(${esc(app.prevSeason(season).label)}) 최종 순위 보기 →</a></div>` : '';
 
   const podium = eligible.slice(0, 3);
-  const medal = ['#F2C94C', '#C4C9D4', '#D49A66'];
+  const medal = ['#C99A06', '#7C8796', '#B0723A'];
 
   el.innerHTML = head + `<div class="stack">
     ${earlyNote}
     ${podium.length ? `<section class="podium">${podium.map((r, i) => `<a href="#/player?id=${encodeURIComponent(r.id)}">
       <div class="row" style="justify-content:space-between"><b class="num" style="color:${medal[i]}">#${i + 1}</b><span class="tag" style="color:${TIER_COLOR[r.tier]};border:1px solid ${TIER_COLOR[r.tier]}">${esc(r.tier)}</span></div>
       <div class="row" style="justify-content:space-between;align-items:baseline"><b style="font:700 24px var(--num)">${esc(r.id)}</b><b class="num" style="font-size:28px;color:var(--acc2)">${Math.round(r.r)}</b></div>
-      <div class="row small mute" style="justify-content:space-between"><span class="num">${r.w}승 ${r.l}패 · ${pct(r.w, r.games)}%</span><span>${esc(r.race || '')}</span></div></a>`).join('')}</section>` : ''}
+      <div class="row small mute" style="justify-content:space-between"><span class="num">${r.w}승 ${r.l}패 · ${pct(r.w, r.games)}%</span>${raceLabel(r.race)}</div></a>`).join('')}</section>` : ''}
     ${hl}
     ${mine}
     <div>

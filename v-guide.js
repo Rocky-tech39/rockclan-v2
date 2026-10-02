@@ -1,4 +1,4 @@
-import { C, TIERS, expected, esc } from './util.js';
+import { C, TIERS, expected, esc } from './util.js?v=20261002c';
 
 export function render(app, el) {
   const P = C.V2;
