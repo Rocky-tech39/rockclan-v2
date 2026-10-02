@@ -1,12 +1,12 @@
-import { esc, pct, sign, signColor, tierBadge, raceBadge, raceLabel, TIER_COLOR, RACE_KO, fmtD, go, expected, formPills, todayKST, C, TIERS } from './util.js?v=20261002e';
-import { seasonTable, sides } from './rating.js?v=20261002e';
+import { esc, pct, sign, signColor, tierBadge, raceBadge, raceLabel, TIER_COLOR, RACE_KO, fmtD, go, expected, formPills, todayKST, C, TIERS } from './util.js?v=20261002f';
+import { seasonTable, sides } from './rating.js?v=20261002f';
 
 export function render(app, el, p) {
   const id = p.get('id') || (p.get('pick') ? '' : app.me);
   if (!id || !app.players.has(id)) return picker(app, el, p);
   const season = app.seasonFromParam(p.get('season'));
   const set = (k, v) => { const o = Object.fromEntries(p); o.id = id; o[k] = v; go('player', o); };
-  const eng = app.engine('v2', 'all');
+  const eng = app.engine(app.method, 'all');
   const meta = app.players.get(id);
   const tier = app.tierAt(id, season.key);
   const refDate = season.key === app.current.key ? todayKST() : season.end;
@@ -118,7 +118,7 @@ function ratingChart(hist) {
 function picker(app, el, p) {
   const q = (p.get('q') || '').toLowerCase();
   const season = app.seasonFromParam(p.get('season'));
-  const eng = app.engine('v2', 'all');
+  const eng = app.engine(app.method, 'all');
   const refDate = season.key === app.current.key ? todayKST() : season.end;
   const rows = new Map(seasonTable(app.matches, eng, season, app, refDate).map(r => [r.id, r]));
   const list = [...app.players.values()].filter(x => !C.HIDE_IDS.includes(x.id)).map(x => {
@@ -132,9 +132,9 @@ function picker(app, el, p) {
     const r = x.row;
     return `<a class="tile pcard${r ? '' : ' idle'}" href="#/player?id=${encodeURIComponent(x.id)}&season=${season.key}" data-name="${esc(x.id.toLowerCase())}">
       <div class="pc-top">${raceBadge(x.race)}<b class="pc-name">${esc(x.id)}</b>${x.isNew ? '<span class="tag acc">신규</span>' : ''}${r && r.rank ? `<span class="pc-rank num">#${r.rank}</span>` : ''}</div>
-      <div class="pc-bot">${r ? `<span class="pc-rec"><span class="num">${r.w}승 ${r.l}패</span> · <b class="num">${pct(r.w, r.games)}%</b>${r.eligible ? '' : ' <small class="prov-tag">배치중</small>'}</span><span class="pc-r num">${Math.round(r.r)}</span>` : `<span class="mute small">이번 시즌 경기 없음</span><span class="pc-r num mute2">${Math.round(eng.R.get(x.id) ?? (1000 + (Math.max(0, TIERS.indexOf(x.tier)) - 2) * C.V2.TIER_STEP))}</span>`}</div></a>`;
+      <div class="pc-bot">${r ? `<span class="pc-rec"><span class="num">${r.w}승 ${r.l}패</span> · <b class="num">${pct(r.w, r.games)}%</b>${r.eligible ? '' : ' <small class="prov-tag">배치중</small>'}</span><span class="pc-r num">${Math.round(r.r)}</span>` : `<span class="mute small">이번 시즌 경기 없음</span><span class="pc-r num mute2">${Math.round(eng.R.get(x.id) ?? (app.method === 'v2' ? 1000 + (Math.max(0, TIERS.indexOf(x.tier)) - 2) * C.V2.TIER_STEP : 1000))}</span>`}</div></a>`;
   };
-  el.innerHTML = `<div class="head"><div><div class="eyebrow">PLAYERS</div><h1 class="title">선수</h1><div class="desc">티어별로 레이팅 높은 순 · 오른쪽 숫자는 레이팅(v2) · 승패는 선택한 시즌 기준 · 누르면 상세 기록</div></div>
+  el.innerHTML = `<div class="head"><div><div class="eyebrow">PLAYERS</div><h1 class="title">선수</h1><div class="desc">티어별로 레이팅 높은 순 · 오른쪽 숫자는 ${app.method === 'v2' ? '레이팅 v2' : 'ELO 점수'} · 승패는 선택한 시즌 기준 · 누르면 상세 기록</div></div>
     <div class="row"><button class="btn" id="pkNew">+ 선수 등록</button><select id="pkS" class="fld" aria-label="시즌">${seasonOpts}</select><input id="pkQ" class="fld" placeholder="ID 검색" value="${esc(p.get('q') || '')}" aria-label="선수 검색"></div></div>
     <div class="stack">${groups.map(([t, xs]) => `<section class="tgroup" data-tier="${t}">
       <div class="tg-h"><span class="tg-dot" style="background:${TIER_COLOR[t]}"></span><b style="color:${TIER_COLOR[t]}">${t}</b><span class="mute small">${xs.length}명 · 이번 시즌 ${xs.filter(x => x.row).length}명 출전</span></div>

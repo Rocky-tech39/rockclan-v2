@@ -14,6 +14,8 @@ window.RC_CONFIG = {
     { key: '2026Q3', label: '2026 3Q',   start: '2026-07-01', end: '2026-09-30' },
     { key: '2026Q4', label: '2026 4Q',   start: '2026-10-01', end: '2026-12-31' }
   ],
+  // 기본 점수 방식: 'legacy' = 기존 ELO (v1.0과 같은 방식), 'v2' = 개편 레이팅(시뮬레이션 중)
+  DEFAULT_METHOD: 'legacy',
   // 레이팅 v2 파라미터
   V2: { TIER_STEP: 100, K_SOLO: 16, K_TEAM: 12, PROVISIONAL_GAMES: 10, PROVISIONAL_MULT: 2, SOFT_RESET: 0.5 },
   // 랭킹 등록 조건

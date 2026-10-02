@@ -1,10 +1,10 @@
-import { C, esc, pct, sign, signColor, tierBadge, raceBadge, raceLabel, formPills, sparkline, sample, go, fmtD, TIERS, TIER_COLOR, addDays, todayKST } from './util.js?v=20261002e';
-import { seasonTable, proTable, sides } from './rating.js?v=20261002e';
+import { C, esc, pct, sign, signColor, tierBadge, raceBadge, raceLabel, formPills, sparkline, sample, go, fmtD, TIERS, TIER_COLOR, addDays, todayKST } from './util.js?v=20261002f';
+import { seasonTable, proTable, sides } from './rating.js?v=20261002f';
 
 export function render(app, el, p) {
   const season = app.seasonFromParam(p.get('season'));
   const mode = p.get('mode') || 'all';
-  const method = p.get('method') || 'v2';
+  const method = p.get('method') || app.method;
   const sort = p.get('sort') || 'skill';
   const showAll = p.get('all') === '1';
   const q = (p.get('q') || '').toLowerCase(), race = p.get('race') || '', tier = p.get('tier') || '';
@@ -22,7 +22,7 @@ export function render(app, el, p) {
     <div class="row">
       <label class="sr" for="rkSeason">시즌</label><select id="rkSeason" class="fld">${seasonOpts}</select>
       <label class="sr" for="rkMethod">계산 방식</label>
-      <select id="rkMethod" class="fld" ${mode === 'pro' ? 'disabled' : ''}><option value="v2" ${method === 'v2' ? 'selected' : ''}>레이팅 v2 (개편안)</option><option value="legacy" ${method === 'legacy' ? 'selected' : ''}>기존 ELO (비교용)</option></select>
+      <select id="rkMethod" class="fld" ${mode === 'pro' ? 'disabled' : ''}><option value="legacy" ${method === 'legacy' ? 'selected' : ''}>기존 ELO (기본)</option><option value="v2" ${method === 'v2' ? 'selected' : ''}>레이팅 v2 (개편 시뮬레이션)</option></select>
     </div>
   </div>`;
 

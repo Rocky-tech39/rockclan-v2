@@ -1,6 +1,6 @@
-import { esc, fmtD, timeAgo, todayKST, expected, C } from './util.js?v=20261002e';
-import { store, isDemo } from './store.js?v=20261002e';
-import { isConfirmed } from './data.js?v=20261002e';
+import { esc, fmtD, timeAgo, todayKST, expected, C } from './util.js?v=20261002f';
+import { store, isDemo } from './store.js?v=20261002f';
+import { isConfirmed } from './data.js?v=20261002f';
 
 let draft = null;
 const newDraft = () => ({ kind: 'pro', date: todayKST(), t1: [], t2: [], sets: [], confirmer: '' });
@@ -78,7 +78,7 @@ function renderForm(app, box) {
   const maps = (app.maps.length ? app.maps.map(m => m.map_name) : ['투혼', '폴리포이드', '폴스타', '녹아웃', '옥타곤', '애티튜드']);
   const teamMaps = ['2:2생컨', '2:2투혼', '3:3헌터', '3:3생컨', '4:4헌터'];
   const allMaps = [...new Set([...maps, ...teamMaps, '투혼(에결)'])];
-  const eng = app.engine('v2', 'all');
+  const eng = app.engine(app.method, 'all');
   const R = id => eng.R.get(id) ?? 1000;
   if (d.kind === 'solo') { d.t1 = d.t1.slice(0, 1); d.t2 = d.t2.slice(0, 1); if (!d.sets.length) d.sets = [{ type: 'solo', map: maps[0], p1: '', p2: '', side: 0 }]; d.sets = d.sets.slice(0, 1); d.sets[0].p1 = d.t1[0] || ''; d.sets[0].p2 = d.t2[0] || ''; }
   if (d.kind === 'team') { if (!d.sets.length) d.sets = [{ type: 'team', map: teamMaps[0], side: 0 }]; d.sets = d.sets.slice(0, 1); d.sets[0].type = 'team'; d.sets[0].t1 = d.t1; d.sets[0].t2 = d.t2; }

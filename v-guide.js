@@ -1,4 +1,4 @@
-import { C, TIERS, expected, esc } from './util.js?v=20261002e';
+import { C, TIERS, expected, esc } from './util.js?v=20261002f';
 
 export function render(app, el) {
   const P = C.V2;
@@ -6,7 +6,7 @@ export function render(app, el) {
   <div class="head"><div><div class="eyebrow">HOW IT WORKS</div><h1 class="title">레이팅 안내</h1><div class="desc">v2 Beta의 점수 계산 방식과 기존 방식과의 차이</div></div></div>
   <div class="stack">
   <section class="grid2">
-    <div class="card"><h2>레이팅 v2 (개편안)</h2>
+    <div class="card"><h2>레이팅 v2 (개편안 · 시뮬레이션 중)</h2>
       <ol style="margin:0;padding-left:18px;line-height:1.9;font-size:14px">
         <li><b>티어로 시작</b>: Silver 1000점 기준, 티어 한 단계마다 ±${P.TIER_STEP}점에서 출발 (Legend ${1000 + 3 * P.TIER_STEP} · Diamond ${1000 + 2 * P.TIER_STEP} · Gold ${1000 + P.TIER_STEP} · Silver 1000 · Bronze ${1000 - P.TIER_STEP})</li>
         <li><b>경기마다 변동</b>: 새 점수 = 점수 + K × (결과 − 예상 승률). 개인전 K=${P.K_SOLO}, 팀전 K=${P.K_TEAM}(인원수로 나눔: 2:2가 4:4보다 크게 변동)</li>
@@ -20,7 +20,7 @@ export function render(app, el) {
         <tr class="mute"><th style="text-align:left;padding:6px 0">항목</th><th style="text-align:left">기존</th><th style="text-align:left">v2</th></tr>
         ${[['티어 역할', '매 경기 단계당 +40 보정', '시작 점수(단계당 100)'], ['보이는 숫자', '티어 대비 초과 성과', '실력 점수 그 자체'], ['시즌', '분기마다 1000 리셋', '소프트 리셋(50%)'], ['신규·소수 경기', '구분 없음', '배치중 표시 + K×2'], ['팀전', '티어 무시, 인원 무관 동일 변동', '인원수 반영'], ['티어 변경', '시즌 전체 소급 재계산', '시즌 스냅샷 기준']].map(r => `<tr style="border-top:1px solid var(--line)"><td style="padding:7px 0;color:var(--mute)">${r[0]}</td><td>${r[1]}</td><td><b>${r[2]}</b></td></tr>`).join('')}
       </table>
-      <div class="small mute" style="margin-top:10px">랭킹 화면의 "계산 방식"에서 기존 ELO로 바꿔 두 결과를 비교할 수 있습니다.</div></div>
+      <div class="small mute" style="margin-top:10px">지금 사이트의 기본 점수는 <b>기존 ELO</b>입니다. 레이팅 v2는 티어·개인전/팀전·현재 점수에 따라 더 흥미롭게 움직이도록 시뮬레이션 중이며, 랭킹 화면의 "계산 방식"에서 미리 비교해 볼 수 있습니다.</div></div>
   </section>
   <section class="card"><h2>승리 확률 시뮬레이터</h2>
     <div class="row">

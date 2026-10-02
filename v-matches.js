@@ -1,10 +1,10 @@
-import { esc, fmtD, go, sign } from './util.js?v=20261002e';
-import { sides } from './rating.js?v=20261002e';
-import { store } from './store.js?v=20261002e';
-import { timeAgo } from './util.js?v=20261002e';
+import { esc, fmtD, go, sign } from './util.js?v=20261002f';
+import { sides } from './rating.js?v=20261002f';
+import { store } from './store.js?v=20261002f';
+import { timeAgo } from './util.js?v=20261002f';
 
 export function render(app, el, p) {
-  const eng = app.engine('v2', 'all');
+  const eng = app.engine(app.method, 'all');
   const kind = p.get('kind') || '';
   const q = (p.get('q') || '').trim().toLowerCase();
   const days = [...new Set(app.matches.map(m => m.date))].sort();

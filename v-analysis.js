@@ -1,5 +1,5 @@
-import { esc, pct, sign, tierBadge, raceBadge, raceLabel, TIER_COLOR, TIERS, RACE_KO, fmtD, go, expected, C, todayKST } from './util.js?v=20261002e';
-import { sides, seasonTable } from './rating.js?v=20261002e';
+import { esc, pct, sign, tierBadge, raceBadge, raceLabel, TIER_COLOR, TIERS, RACE_KO, fmtD, go, expected, C, todayKST } from './util.js?v=20261002f';
+import { sides, seasonTable } from './rating.js?v=20261002f';
 
 export function render(app, el, p) {
   const sk = p.get('season') || 'all';
@@ -8,7 +8,7 @@ export function render(app, el, p) {
   const a = p.get('a') && app.players.has(p.get('a')) ? p.get('a') : (app.me || 'dalsun2');
   const b0 = p.get('b') && app.players.has(p.get('b')) ? p.get('b') : null;
   const set = (k, v) => { const o = Object.fromEntries(p); o.a = a; if (b0) o.b = b0; o[k] = v; go('analysis', o); };
-  const eng = app.engine('v2', 'all');
+  const eng = app.engine(app.method, 'all');
   const inRange = m => !season || (m.date >= season.start && m.date <= season.end);
   const solos = app.matches.filter(m => m.kind === 'solo' && !m.dup && inRange(m));
 

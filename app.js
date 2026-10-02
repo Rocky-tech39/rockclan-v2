@@ -1,15 +1,15 @@
-import { C, esc, qs, go, ls, uid, seasonOf, currentSeason, todayKST, raceLabel } from './util.js?v=20261002e';
-import { loadOfficial, normalize, submissionsToRows, isConfirmed, isFix, isReg, applyFixes } from './data.js?v=20261002e';
-import { runEngine } from './rating.js?v=20261002e';
-import { store, isDemo } from './store.js?v=20261002e';
-import * as ranking from './v-ranking.js?v=20261002e';
-import * as matches from './v-matches.js?v=20261002e';
-import * as player from './v-player.js?v=20261002e';
-import * as analysis from './v-analysis.js?v=20261002e';
-import * as submit from './v-submit.js?v=20261002e';
-import * as board from './v-board.js?v=20261002e';
-import * as guide from './v-guide.js?v=20261002e';
-import * as tour from './v-tour.js?v=20261002e';
+import { C, esc, qs, go, ls, uid, seasonOf, currentSeason, todayKST, raceLabel } from './util.js?v=20261002f';
+import { loadOfficial, normalize, submissionsToRows, isConfirmed, isFix, isReg, applyFixes } from './data.js?v=20261002f';
+import { runEngine } from './rating.js?v=20261002f';
+import { store, isDemo } from './store.js?v=20261002f';
+import * as ranking from './v-ranking.js?v=20261002f';
+import * as matches from './v-matches.js?v=20261002f';
+import * as player from './v-player.js?v=20261002f';
+import * as analysis from './v-analysis.js?v=20261002f';
+import * as submit from './v-submit.js?v=20261002f';
+import * as board from './v-board.js?v=20261002f';
+import * as guide from './v-guide.js?v=20261002f';
+import * as tour from './v-tour.js?v=20261002f';
 
 const VIEWS = { ranking, matches, player, analysis, submit, board, guide, tour };
 const $ = s => document.querySelector(s);
@@ -18,6 +18,7 @@ const app = {
   players: new Map(), snaps: {}, maps: [], rows: [], subs: [], fixes: [], allSubs: [], matches: [], pendingFix: new Map(), current: currentSeason(),
   me: ls.get('rc.me', null),
   _eng: new Map(),
+  method: (window.RC_CONFIG && window.RC_CONFIG.DEFAULT_METHOD) || 'legacy',
 
   tierAt(id, sk) { return (sk && this.snaps[sk] && this.snaps[sk][id]) || (this.players.get(id) || {}).tier || 'Silver'; },
   seasonOf,
