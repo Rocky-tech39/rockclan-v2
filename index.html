@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RockClan Records v2 (시안)</title>
+<meta name="description" content="락클랜 전적·랭킹 v2 시안 — 클랜원 피드백 수집용">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23FF7A1A'/%3E%3Ctext x='16' y='23' font-family='Arial' font-weight='700' font-size='19' text-anchor='middle' fill='%230D0E12'%3ER%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Oxanium:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<script src="config.js"></script>
+</head>
+<body>
+<div class="banner" id="banner"></div>
+<header class="top">
+  <div class="wrap top-in">
+    <a class="brand" href="#/ranking"><span class="logo">R</span><span>ROCKCLAN <b>RECORDS</b></span><span class="beta">v2 시안</span></a>
+    <nav class="nav" id="nav">
+      <a href="#/ranking" data-r="ranking">랭킹</a>
+      <a href="#/matches" data-r="matches">경기 기록</a>
+      <a href="#/analysis" data-r="analysis">전력 분석</a>
+      <a href="#/player" data-r="player">선수</a>
+      <a href="#/submit" data-r="submit">결과 확인 <span class="badge" id="inboxBadge" hidden></span></a>
+      <a href="#/board" data-r="board">의견 게시판</a>
+      <a href="#/guide" data-r="guide">안내</a>
+    </nav>
+    <div class="top-right">
+      <button class="me-btn" id="meBtn" type="button" aria-label="내 선수 설정"></button>
+      <a class="cta" href="#/submit?new=1">+ 결과 제출</a>
+    </div>
+  </div>
+</header>
+<main class="wrap" id="app" tabindex="-1"><div class="loading">경기 기록을 불러오는 중…</div></main>
+<footer class="foot wrap">
+  <span>RockClan Records v2 시안 · 공식 기록은 <a href="https://geronimo-45.github.io/rockclan/" target="_blank" rel="noopener">기존 사이트</a>가 기준입니다</span>
+  <span id="modeNote"></span>
+</footer>
+<nav class="tabbar" aria-label="모바일 메뉴">
+  <a href="#/ranking" data-r="ranking">랭킹</a>
+  <a href="#/matches" data-r="matches">경기</a>
+  <a href="#/analysis" data-r="analysis">분석</a>
+  <a href="#/submit" data-r="submit">제출·확인</a>
+  <a href="#/board" data-r="board">의견</a>
+</nav>
+<button class="fab" id="fab" type="button">의견 남기기</button>
+<div class="modal" id="modal" hidden><div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modalTitle"><div id="modalBody"></div></div></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script type="module" src="app.js"></script>
+</body>
+</html>
