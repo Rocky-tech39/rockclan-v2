@@ -1,15 +1,15 @@
-import { C, esc, qs, go, ls, uid, seasonOf, currentSeason, todayKST, raceLabel } from './util.js?v=20261002h';
-import { loadOfficial, normalize, submissionsToRows, isConfirmed, isFix, isReg, applyFixes } from './data.js?v=20261002h';
-import { runEngine } from './rating.js?v=20261002h';
-import { store, isDemo } from './store.js?v=20261002h';
-import * as ranking from './v-ranking.js?v=20261002h';
-import * as matches from './v-matches.js?v=20261002h';
-import * as player from './v-player.js?v=20261002h';
-import * as analysis from './v-analysis.js?v=20261002h';
-import * as submit from './v-submit.js?v=20261002h';
-import * as board from './v-board.js?v=20261002h';
-import * as guide from './v-guide.js?v=20261002h';
-import * as tour from './v-tour.js?v=20261002h';
+import { C, esc, qs, go, ls, uid, seasonOf, currentSeason, todayKST, raceLabel } from './util.js?v=20261002j';
+import { loadOfficial, normalize, submissionsToRows, isConfirmed, isFix, isReg, applyFixes } from './data.js?v=20261002j';
+import { runEngine } from './rating.js?v=20261002j';
+import { store, isDemo } from './store.js?v=20261002j';
+import * as ranking from './v-ranking.js?v=20261002j';
+import * as matches from './v-matches.js?v=20261002j';
+import * as player from './v-player.js?v=20261002j';
+import * as analysis from './v-analysis.js?v=20261002j';
+import * as submit from './v-submit.js?v=20261002j';
+import * as board from './v-board.js?v=20261002j';
+import * as guide from './v-guide.js?v=20261002j';
+import * as tour from './v-tour.js?v=20261002j';
 
 const VIEWS = { ranking, matches, player, analysis, submit, board, guide, tour };
 const $ = s => document.querySelector(s);
@@ -18,6 +18,7 @@ const app = {
   players: new Map(), snaps: {}, maps: [], rows: [], subs: [], fixes: [], allSubs: [], matches: [], pendingFix: new Map(), current: currentSeason(),
   me: ls.get('rc.me', null),
   _eng: new Map(),
+  isAdmin() { return !!this.me && (C.ADMINS || []).includes(this.me); },
   method: (window.RC_CONFIG && window.RC_CONFIG.DEFAULT_METHOD) || 'legacy',
 
   tierAt(id, sk) { return (sk && this.snaps[sk] && this.snaps[sk][id]) || (this.players.get(id) || {}).tier || 'Silver'; },
@@ -41,7 +42,8 @@ const app = {
   },
   rebuild() {
     this.regs = this.allSubs.filter(isReg).slice().sort((a, b) => (a.created_at || '').localeCompare(b.created_at || ''));
-    for (const r of this.regs) {
+    this.pendingRegs = this.regs.filter(r => r.status === 'pending');
+    for (const r of this.regs.filter(r => r.status === 'confirmed')) {
       const p = r.sets.player;
       if (!this.players.has(p.id)) this.players.set(p.id, { id: p.id, race: p.race || 'Random', tier: p.tier || 'Silver', isNew: true, regBy: r.submitter, regAt: r.created_at });
     }
@@ -66,7 +68,7 @@ const app = {
     const ids = [...this.players.keys()].filter(x => !C.HIDE_IDS.includes(x)).sort((a, b) => a.localeCompare(b));
     modal(`<h3 id="modalTitle">내 선수 설정</h3><p class="mute small">이 기기에서 나를 누구로 표시할지 정합니다. 랭킹에서 내 위치, 결과 확인 요청, 의견 작성자에 쓰입니다. (베타 기간이라 로그인 없이 신뢰 기반으로 운영해요)</p>
       <label class="sr" for="meSel">선수</label><select id="meSel" class="fld" style="width:100%"><option value="">선택 안 함</option>${ids.map(x => `<option ${x === this.me ? 'selected' : ''}>${esc(x)}</option>`).join('')}</select>
-      <div class="note small" style="margin-top:12px">목록에 내 아이디가 없나요? <button class="btn small" id="meNew" style="margin-left:6px">+ 새 선수 등록</button></div>
+      <div class="note small" style="margin-top:12px">목록에 내 아이디가 없나요? <button class="btn small" id="meNew" style="margin-left:6px">+ 새 선수 등록 신청</button><div class="mute" style="margin-top:4px">운영진이 승인하면 목록에 나타나요.</div></div>
       <div class="row" style="justify-content:flex-end;margin-top:14px"><button class="btn" data-close>닫기</button><button class="btn pri" id="meGo">저장</button></div>`,
       m => {
         m.querySelector('#meGo').onclick = () => { const v = m.querySelector('#meSel').value || null; closeModal(); this.setMe(v); };
@@ -76,20 +78,21 @@ const app = {
   registerPlayer(onDone) {
     const RACES = [['Protoss', '프로토스'], ['Terran', '테란'], ['Zerg', '저그'], ['Random', '랜덤']];
     const TIERS = ['Bronze', 'Silver', 'Gold', 'Diamond', 'Legend', 'Stone'];
-    modal(`<h3 id="modalTitle">새 선수 등록</h3><p class="mute small">명단에 없는 클랜원을 추가합니다. 등록하면 바로 결과 제출·랭킹에 쓸 수 있어요. 티어는 운영진이 나중에 조정할 수 있습니다.</p>
+    modal(`<h3 id="modalTitle">새 선수 등록 신청</h3><p class="mute small">명단에 없는 클랜원 추가를 신청합니다. <b>운영진이 승인하면</b> 선수 목록·결과 제출·랭킹에 쓸 수 있어요. 티어는 운영진이 나중에 조정할 수 있습니다.</p>
       <label class="lbl" style="margin-top:10px">아이디 (게임 아이디 그대로)<input id="rgId" class="fld" maxlength="20" autocomplete="off" placeholder="예: Rocky"></label>
       <div class="small" id="rgMsg" style="min-height:18px;margin-top:4px"></div>
       <div class="lbl" style="margin-top:6px">종족<div class="row" id="rgRace">${RACES.map(([k, v], i) => `<button type="button" class="chip${i === 0 ? ' on' : ''}" data-race="${k}">${raceLabel(k)}</button>`).join('')}</div></div>
       <label class="lbl" style="margin-top:12px">티어 <span class="small mute">(모르면 Silver)</span><select id="rgTier" class="fld">${TIERS.map(t => `<option ${t === 'Silver' ? 'selected' : ''}>${t}</option>`).join('')}</select></label>
-      <div class="row" style="justify-content:flex-end;margin-top:16px"><button class="btn" data-close>취소</button><button class="btn pri" id="rgGo">등록</button></div>`,
+      <div class="row" style="justify-content:flex-end;margin-top:16px"><button class="btn" data-close>취소</button><button class="btn pri" id="rgGo">${this.isAdmin() ? '등록 (운영진 바로 승인)' : '등록 신청'}</button></div>`,
       m => {
         let race = RACES[0][0];
         const inp = m.querySelector('#rgId'), msg = m.querySelector('#rgMsg'), go = m.querySelector('#rgGo');
         const lower = new Set([...this.players.keys()].map(x => x.toLowerCase()));
+        const pendingIds = new Set((this.pendingRegs || []).map(r => r.sets.player.id.toLowerCase()));
         const check = () => {
           const v = inp.value.trim();
-          const bad = !v ? '' : v.length < 2 ? '2자 이상 입력해 주세요' : /[\s,]/.test(v) ? '띄어쓰기·쉼표 없이 입력해 주세요' : lower.has(v.toLowerCase()) ? '이미 명단에 있는 아이디예요' : '';
-          msg.innerHTML = bad ? `<span class="down">${bad}</span>` : v ? '<span class="up">등록할 수 있어요</span>' : '';
+          const bad = !v ? '' : v.length < 2 ? '2자 이상 입력해 주세요' : /[\s,]/.test(v) ? '띄어쓰기·쉼표 없이 입력해 주세요' : lower.has(v.toLowerCase()) ? '이미 명단에 있는 아이디예요' : pendingIds.has(v.toLowerCase()) ? '이미 등록 신청된 아이디예요 (운영진 승인 대기)' : '';
+          msg.innerHTML = bad ? `<span class="down">${bad}</span>` : v ? '<span class="up">신청할 수 있어요</span>' : '';
           go.disabled = !v || !!bad; return !go.disabled;
         };
         inp.oninput = check; check(); inp.focus();
@@ -99,12 +102,13 @@ const app = {
           const id = inp.value.trim(), tier = m.querySelector('#rgTier').value;
           go.disabled = true;
           try {
-            await store.insert('submissions', { match_date: todayKST(), kind: 'solo', team1: [id], team2: [], sets: { player: { id, race, tier } }, submitter: this.me || id, status: 'pending' });
+            const row = await store.insert('submissions', { match_date: todayKST(), kind: 'solo', team1: [id], team2: [], sets: { player: { id, race, tier } }, submitter: this.me || '신청자', status: 'pending' });
+            const admin = this.isAdmin();
+            if (admin) await store.update('submissions', row.id, { status: 'confirmed', confirmed_by: this.me, confirmed_at: new Date().toISOString() });
             closeModal();
-            this.players.set(id, { id, race, tier, isNew: true });
-            toast(`${id} 선수를 등록했어요`);
             try { this.allSubs = await store.list('submissions', '&status=neq.canceled'); this.rebuild(); updateBadge(); } catch (e) { console.warn(e); }
-            onDone ? onDone(id) : route();
+            if (admin) { toast(`${id} 선수를 등록했어요`); onDone ? onDone(id) : route(); }
+            else { toast(`${id} 등록을 신청했어요. 운영진 승인 후 사용할 수 있어요`); route(); }
           } catch (e) { toast(e.message); go.disabled = false; }
         };
       });
@@ -155,7 +159,8 @@ function updateBadge() {
   const side = (s, id) => s.team1.includes(id) ? 1 : s.team2.includes(id) ? 2 : 0;
   const n = app.subs.filter(s => s.status === 'pending' && !isConfirmed(s) && s.submitter !== me && side(s, me) && side(s, me) !== side(s, s.submitter)).length
     + app.fixes.filter(f => f.status === 'pending' && !isConfirmed(f) && f.submitter !== me && f.team1.includes(me)).length;
-  b.textContent = n; b.hidden = !n;
+  const nr = app.isAdmin() ? (app.pendingRegs || []).length : 0;
+  b.textContent = n + nr; b.hidden = !(n + nr);
 }
 
 async function route() {

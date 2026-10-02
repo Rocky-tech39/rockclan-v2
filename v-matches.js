@@ -1,7 +1,7 @@
-import { esc, fmtD, go, sign } from './util.js?v=20261002h';
-import { sides } from './rating.js?v=20261002h';
-import { store } from './store.js?v=20261002h';
-import { timeAgo } from './util.js?v=20261002h';
+import { esc, fmtD, go, sign } from './util.js?v=20261002j';
+import { sides } from './rating.js?v=20261002j';
+import { store } from './store.js?v=20261002j';
+import { timeAgo } from './util.js?v=20261002j';
 
 export function render(app, el, p) {
   const eng = app.engine(app.method, 'all');

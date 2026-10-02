@@ -1,5 +1,5 @@
-import { esc, pct, sign, signColor, tierBadge, raceBadge, raceLabel, TIER_COLOR, RACE_KO, fmtD, go, expected, formPills, todayKST, C, TIERS } from './util.js?v=20261002h';
-import { seasonTable, sides } from './rating.js?v=20261002h';
+import { esc, pct, sign, signColor, tierBadge, raceBadge, raceLabel, TIER_COLOR, RACE_KO, fmtD, go, expected, formPills, todayKST, C, TIERS } from './util.js?v=20261002j';
+import { seasonTable, sides } from './rating.js?v=20261002j';
 
 export function render(app, el, p) {
   const id = p.get('id') || (p.get('pick') ? '' : app.me);
@@ -16,13 +16,13 @@ export function render(app, el, p) {
   const inS = app.matches.filter(m => m.kind !== 'pro' && !m.dup && m.date >= season.start && m.date <= season.end && eng.events.has(m.id) && sides(m).flat().includes(id));
 
   // 집계
-  const vr = {}, maps = {}, opp = {}, part = {};
+  const vr = {}, vt = {}, maps = {}, opp = {}, part = {};
   for (const m of inS) {
     const [A, B] = sides(m); const mine = A.includes(id) ? A : B, other = mine === A ? B : A;
     const win = mine === A ? m.win1 : !m.win1;
     if (m.kind === 'solo') {
       const o = other[0], r = (app.players.get(o) || {}).race || '?';
-      (vr[r] ||= [0, 0])[win ? 0 : 1]++; (maps[m.map] ||= [0, 0])[win ? 0 : 1]++; (opp[o] ||= [0, 0])[win ? 0 : 1]++;
+      (vr[r] ||= [0, 0])[win ? 0 : 1]++; (vt[app.tierAt(o, season.key)] ||= [0, 0])[win ? 0 : 1]++; (maps[m.map] ||= [0, 0])[win ? 0 : 1]++; (opp[o] ||= [0, 0])[win ? 0 : 1]++;
     } else mine.filter(x => x !== id).forEach(x => (part[x] ||= [0, 0])[win ? 0 : 1]++);
   }
   const top = (o, n, by = 'n') => Object.entries(o).map(([k, [w, l]]) => ({ k, w, l, n: w + l, p: pct(w, w + l) })).sort((a, b) => by === 'n' ? b.n - a.n || b.p - a.p : b.p - a.p).slice(0, n);
@@ -73,6 +73,15 @@ export function render(app, el, p) {
         ${vs ? `<div class="row" style="margin-top:10px;gap:8px;flex-wrap:nowrap"><span class="small num">${esc(id)}</span><div style="flex:1;height:12px;display:flex;border-radius:4px;overflow:hidden"><i style="width:${Math.round(e * 100)}%;background:var(--acc2)"></i><i style="flex:1;background:var(--line3)"></i></div><span class="small num">${esc(vs.id)}</span></div>
         <div class="num" style="font-size:22px;font-weight:700;margin-top:6px">${Math.round(e * 100)}% <span class="small mute" style="font-weight:500">이기면 +${(K * (1 - e)).toFixed(1)} · 지면 −${(K * e).toFixed(1)}</span></div>` : ''}
       </div></div>
+  </section>
+  <section class="card"><h2>상대 티어별 개인전 <span class="mute">${esc(season.label)} · 상대의 시즌 티어 기준 · 내 티어 ${esc(tier)}</span></h2>
+    ${(() => { const rows = TIERS.slice().reverse().map(t => { const [w, l] = vt[t] || [0, 0]; return { t, w, l, n: w + l, p: pct(w, w + l) }; }).filter(x => x.n);
+      if (!rows.length) return '<div class="mute small">이 시즌 개인전 기록이 없습니다</div>';
+      const my = TIERS.indexOf(tier);
+      return `<div class="tvt">${rows.map(x => { const d = TIERS.indexOf(x.t) - my; const rel = d > 0 ? `${d}단계 위` : d < 0 ? `${-d}단계 아래` : '같은 티어';
+        return `<div class="tvt-r${d === 0 ? ' same' : ''}"><span class="tvt-t"><b style="color:${TIER_COLOR[x.t]}">${x.t}</b><small class="mute">${rel}</small></span>
+          <div class="pbar duo"><div class="bar"><i class="t1" style="width:${x.p}%"></i><i class="t2"></i></div></div>
+          <span class="num tvt-n">${x.w}승 ${x.l}패</span><b class="num tvt-p" style="color:${col(x.p)}">${x.p}%</b>${x.n < 5 ? '<small class="tvt-s">표본 적음</small>' : '<small class="tvt-s"></small>'}</div>`; }).join('')}</div>`; })()}
   </section>
   <section class="grid3">
     <div class="card"><h2>베스트 파트너 <span class="mute">팀전</span></h2>${top(part, 6).map(li).join('') || '<div class="mute small">팀전 기록 없음</div>'}</div>
@@ -135,13 +144,13 @@ function picker(app, el, p) {
       <div class="pc-bot">${r ? `<span class="pc-rec"><span class="num">${r.w}승 ${r.l}패</span> · <b class="num">${pct(r.w, r.games)}%</b>${r.eligible ? '' : ' <small class="prov-tag">배치중</small>'}</span><span class="pc-r num">${Math.round(r.r)}</span>` : `<span class="mute small">이번 시즌 경기 없음</span><span class="pc-r num mute2">${Math.round(eng.R.get(x.id) ?? (app.method === 'v2' ? 1000 + (Math.max(0, TIERS.indexOf(x.tier)) - 2) * C.V2.TIER_STEP : 1000))}</span>`}</div></a>`;
   };
   el.innerHTML = `<div class="head"><div><div class="eyebrow">PLAYERS</div><h1 class="title">선수</h1><div class="desc">티어별로 레이팅 높은 순 · 오른쪽 숫자는 ${app.method === 'v2' ? '레이팅 v2' : 'ELO 점수'} · 승패는 선택한 시즌 기준 · 누르면 상세 기록</div></div>
-    <div class="row"><button class="btn" id="pkNew">+ 선수 등록</button><select id="pkS" class="fld" aria-label="시즌">${seasonOpts}</select><input id="pkQ" class="fld" placeholder="ID 검색" value="${esc(p.get('q') || '')}" aria-label="선수 검색"></div></div>
+    <div class="row"><button class="btn" id="pkNew">+ 선수 등록 신청</button><select id="pkS" class="fld" aria-label="시즌">${seasonOpts}</select><input id="pkQ" class="fld" placeholder="ID 검색" value="${esc(p.get('q') || '')}" aria-label="선수 검색"></div></div>
     <div class="stack">${groups.map(([t, xs]) => `<section class="tgroup" data-tier="${t}">
       <div class="tg-h"><span class="tg-dot" style="background:${TIER_COLOR[t]}"></span><b style="color:${TIER_COLOR[t]}">${t}</b><span class="mute small">${xs.length}명 · 이번 시즌 ${xs.filter(x => x.row).length}명 출전</span></div>
       <div class="grid4">${xs.map(card).join('')}</div></section>`).join('')}</div>`;
   const i = el.querySelector('#pkQ');
   const filt = () => { const v = i.value.toLowerCase(); el.querySelectorAll('.tgroup').forEach(g => { let n = 0; g.querySelectorAll('.pcard').forEach(t => { const on = !v || t.dataset.name.includes(v); t.hidden = !on; n += on; }); g.hidden = !n; }); };
   i.oninput = filt; filt();
-  el.querySelector('#pkNew').onclick = () => app.registerPlayer(id => go('player', { id }));
+  el.querySelector('#pkNew').onclick = () => app.registerPlayer(id => app.players.has(id) ? go('player', { id }) : null);
   el.querySelector('#pkS').onchange = e => go('player', { pick: 1, season: e.target.value, q: i.value });
 }

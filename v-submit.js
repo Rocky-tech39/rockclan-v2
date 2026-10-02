@@ -1,6 +1,6 @@
-import { esc, fmtD, timeAgo, todayKST, expected, C } from './util.js?v=20261002h';
-import { store, isDemo } from './store.js?v=20261002h';
-import { isConfirmed } from './data.js?v=20261002h';
+import { esc, fmtD, timeAgo, todayKST, expected, C } from './util.js?v=20261002j';
+import { store, isDemo } from './store.js?v=20261002j';
+import { isConfirmed } from './data.js?v=20261002j';
 
 let draft = null;
 // 맵 이름 앞의 "2:2", "3:3", "4:4" → 팀당 인원 (없으면 0 = 개인전 맵)
@@ -28,6 +28,8 @@ export async function render(app, el, p) {
   const statusOf = s => s.status === 'pending' && isConfirmed(s) ? 'auto' : s.status;
   const toConfirm = me ? subs.filter(s => s.status === 'pending' && !isConfirmed(s) && s.submitter !== me && sideOf(s, me) && sideOf(s, me) !== sideOf(s, s.submitter)) : [];
   const mine = me ? subs.filter(s => s.submitter === me) : [];
+  const regs = (app.pendingRegs || []).filter(r => app.isAdmin() || r.submitter === me);
+  const RACE_KO_ = { Protoss: '프로토스', Terran: '테란', Zerg: '저그', Random: '랜덤' };
   const fixes = app.fixes || [];
   const fixConfirm = me ? fixes.filter(f => f.status === 'pending' && !isConfirmed(f) && f.submitter !== me && f.team1.includes(me)) : [];
   const myFixes = me ? fixes.filter(f => f.submitter === me) : [];
@@ -58,6 +60,9 @@ export async function render(app, el, p) {
     ${toConfirm.map(s => subRow(s, `<button class="btn blue" data-ok="${s.id}">맞아요</button><button class="btn" data-no="${s.id}">이의 제기</button>`)).join('')}
     ${fixConfirm.map(f => fixRow(f, `<button class="btn blue" data-ok="${f.id}">맞아요</button><button class="btn" data-no="${f.id}">이의 제기</button>`)).join('')}
     ${toConfirm.length + fixConfirm.length ? '' : '<div class="mute small">확인할 결과가 없습니다</div>'}</section>` : ''}
+  ${regs.length ? `<section class="card"><h2>선수 등록 신청 <span class="mute">${app.isAdmin() ? '운영진 승인 필요' : '운영진 승인 대기 중'}</span></h2>${regs.map(r => { const p = r.sets.player; return `<div class="subrow" style="display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center;background:var(--card2);border-radius:10px;padding:10px 14px;margin-top:8px">
+      <div><b>${esc(p.id)}</b> <span class="small mute">· ${esc(RACE_KO_[p.race] || p.race || '')} · ${esc(p.tier || '')}</span><div class="small mute">신청 ${esc(r.submitter)} · ${timeAgo(r.created_at)}</div></div>
+      <div class="row">${app.isAdmin() ? `<button class="btn blue" data-regok="${r.id}">승인</button><button class="btn" data-regno="${r.id}">거절</button>` : '<span class="tag mute">승인 대기</span>'}</div></div>`; }).join('')}</section>` : ''}
   <section class="card" id="newForm"></section>
   ${mine.length ? `<section class="card"><h2>내가 제출한 결과</h2>${mine.map(s => subRow(s, s.status === 'pending' && !isConfirmed(s) ? `<span class="tag mute">확인 대기</span><button class="btn" data-cancel="${s.id}">취소</button>` : '')).join('')}</section>` : ''}
   ${myFixes.length ? `<section class="card"><h2>내가 올린 수정·삭제 요청</h2>${myFixes.map(f => fixRow(f, f.status === 'pending' && !isConfirmed(f) ? `<span class="tag mute">확인 대기</span><button class="btn" data-cancel="${f.id}">취소</button>` : '')).join('')}</section>` : ''}
@@ -83,6 +88,16 @@ export async function render(app, el, p) {
     if (!window.confirm('이 제출을 취소할까요?')) return;
     try { await store.update('submissions', b.dataset.cancel, { status: 'canceled' }); app.toast('취소했습니다'); await app.reloadSubs(); } catch (e) { app.toast(e.message); }
   });
+  el.querySelectorAll('[data-regok]').forEach(b => b.onclick = async () => {
+    if (!app.isAdmin()) return; b.disabled = true;
+    try { await store.update('submissions', b.dataset.regok, { status: 'confirmed', confirmed_by: me, confirmed_at: new Date().toISOString() }); app.toast('승인했습니다. 선수 목록에 추가됩니다'); await app.reloadSubs(); }
+    catch (e) { app.toast(e.message); b.disabled = false; }
+  });
+  el.querySelectorAll('[data-regno]').forEach(b => b.onclick = async () => {
+    if (!app.isAdmin() || !window.confirm('이 등록 신청을 거절할까요?')) return; b.disabled = true;
+    try { await store.update('submissions', b.dataset.regno, { status: 'canceled', confirmed_by: me, dispute_reason: '운영진 거절' }); app.toast('거절했습니다'); await app.reloadSubs(); }
+    catch (e) { app.toast(e.message); b.disabled = false; }
+  });
   renderForm(app, el.querySelector('#newForm'));
 }
 
@@ -103,7 +118,7 @@ function renderForm(app, box) {
     const max = d.kind === 'solo' ? 1 : 4;
     return `<div class="row" style="background:var(--bg);border:1px solid var(--line2);border-radius:8px;padding:6px;min-height:46px;gap:6px">
       ${arr.map(x => `<button class="chip" data-rm="${team}|${esc(x)}" title="빼기">${esc(x)} ✕</button>`).join('')}
-      ${arr.length < max ? `<select class="fld" data-add="${team}" style="min-height:34px;padding:4px 8px;border-style:dashed" aria-label="팀 ${team} 선수 추가"><option value="">+ 선수</option><option value="__new">＋ 목록에 없는 선수 등록…</option>${ids.filter(x => !d.t1.includes(x) && !d.t2.includes(x)).map(x => `<option>${esc(x)}</option>`).join('')}</select>` : ''}
+      ${arr.length < max ? `<select class="fld" data-add="${team}" style="min-height:34px;padding:4px 8px;border-style:dashed" aria-label="팀 ${team} 선수 추가"><option value="">+ 선수</option><option value="__new">＋ 목록에 없는 선수 등록 신청…</option>${ids.filter(x => !d.t1.includes(x) && !d.t2.includes(x)).map(x => `<option>${esc(x)}</option>`).join('')}</select>` : ''}
     </div>`;
   };
   const setRow = (s, i) => {
@@ -152,7 +167,7 @@ function renderForm(app, box) {
   const rerender = () => renderForm(app, box);
   box.querySelectorAll('[data-kind]').forEach(b => b.onclick = () => { const k = b.dataset.kind; draft = { ...newDraft(), kind: k, date: d.date, t1: k === 'solo' ? d.t1.slice(0, 1) : d.t1, t2: k === 'solo' ? d.t2.slice(0, 1) : d.t2 }; rerender(); });
   box.querySelector('#fDate').onchange = e => { d.date = e.target.value; rerender(); };
-  box.querySelectorAll('[data-add]').forEach(s => s.onchange = () => { const team = s.dataset.add; if (s.value === '__new') { s.value = ''; return app.registerPlayer(id => { d['t' + team].push(id); rerender(); }); } if (s.value) d['t' + team].push(s.value); rerender(); });
+  box.querySelectorAll('[data-add]').forEach(s => s.onchange = () => { const team = s.dataset.add; if (s.value === '__new') { s.value = ''; return app.registerPlayer(id => { if (app.players.has(id)) d['t' + team].push(id); rerender(); }); } if (s.value) d['t' + team].push(s.value); rerender(); });
   box.querySelectorAll('[data-rm]').forEach(b => b.onclick = () => { const [t, id] = b.dataset.rm.split('|'); d['t' + t] = d['t' + t].filter(x => x !== id); d.sets.forEach(s => { if (s.p1 === id) s.p1 = ''; if (s.p2 === id) s.p2 = ''; if (s.t1) s.t1 = s.t1.filter(x => x !== id); if (s.t2) s.t2 = s.t2.filter(x => x !== id); }); rerender(); });
   box.querySelectorAll('[data-map]').forEach(s => s.onchange = () => { const st = d.sets[+s.dataset.map]; st.map = s.value; if (d.kind !== 'solo') fitSet(d, st); rerender(); });
   box.querySelectorAll('[data-sp]').forEach(s => s.onchange = () => { const [i, k] = s.dataset.sp.split('|'); d.sets[+i][k] = s.value; rerender(); });

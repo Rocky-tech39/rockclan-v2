@@ -16,6 +16,8 @@ window.RC_CONFIG = {
   ],
   // 기본 점수 방식: 'legacy' = 기존 ELO (v1.0과 같은 방식), 'v2' = 개편 레이팅(시뮬레이션 중)
   DEFAULT_METHOD: 'legacy',
+  // 운영진 아이디 — '내 선수'를 이 아이디로 설정하면 새 선수 등록 신청을 승인/거절할 수 있음
+  ADMINS: ['Rocky'],
   // 레이팅 v2 파라미터
   V2: { TIER_STEP: 100, K_SOLO: 16, K_TEAM: 12, PROVISIONAL_GAMES: 10, PROVISIONAL_MULT: 2, SOFT_RESET: 0.5 },
   // 랭킹 등록 조건

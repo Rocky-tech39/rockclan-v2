@@ -1,5 +1,5 @@
 // 쓰기 저장소: WRITE_URL이 있으면 Supabase, 없으면 이 브라우저에만 저장(시연 모드)
-import { C, ls, uid } from './util.js?v=20261002h';
+import { C, ls, uid } from './util.js?v=20261002j';
 
 export const isDemo = !C.WRITE_URL || !C.WRITE_KEY;
 

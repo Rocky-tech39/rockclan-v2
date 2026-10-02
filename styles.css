@@ -169,6 +169,17 @@ label.lbl{display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--
 .tabbar{display:none}
 .vs{display:grid;grid-template-columns:minmax(0,1fr) 220px minmax(0,1fr);align-items:center;gap:16px;padding:18px 0 10px}
 
+/* player: 상대 티어별 */
+.tvt{display:flex;flex-direction:column;gap:2px}
+.tvt-r{display:grid;grid-template-columns:150px minmax(0,1fr) 96px 52px 60px;gap:12px;align-items:center;padding:8px 10px;border-radius:8px;font-size:14px}
+.tvt-r.same{background:var(--accbg)}
+.tvt-t{display:flex;align-items:baseline;gap:8px}
+.tvt-t small{font-size:11.5px}
+.tvt-r .pbar.duo .bar{height:10px}
+.tvt-n{text-align:right;color:var(--text2)}.tvt-p{text-align:right;font-size:15px}
+.tvt-s{font-size:11px;color:var(--warn)}
+@media (max-width:980px){.tvt-r{grid-template-columns:84px minmax(0,1fr) 62px 40px;gap:8px;padding:8px 4px;font-size:13px}.tvt-s{display:none}.tvt-t{flex-direction:column;gap:0}}
+
 /* player picker */
 .pcard[hidden],.tgroup[hidden]{display:none!important}
 .tgroup{display:flex;flex-direction:column;gap:10px}
