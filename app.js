@@ -1,15 +1,15 @@
-import { C, esc, qs, go, ls, uid, seasonOf, currentSeason, todayKST, raceLabel } from './util.js?v=20261002l';
-import { loadOfficial, normalize, submissionsToRows, isConfirmed, isFix, isReg, applyFixes } from './data.js?v=20261002l';
-import { runEngine } from './rating.js?v=20261002l';
-import { store, isDemo } from './store.js?v=20261002l';
-import * as ranking from './v-ranking.js?v=20261002l';
-import * as matches from './v-matches.js?v=20261002l';
-import * as player from './v-player.js?v=20261002l';
-import * as analysis from './v-analysis.js?v=20261002l';
-import * as submit from './v-submit.js?v=20261002l';
-import * as board from './v-board.js?v=20261002l';
-import * as guide from './v-guide.js?v=20261002l';
-import * as tour from './v-tour.js?v=20261002l';
+import { C, esc, qs, go, ls, uid, seasonOf, currentSeason, todayKST, raceLabel } from './util.js?v=20261002m';
+import { loadOfficial, normalize, submissionsToRows, isConfirmed, isFix, isReg, applyFixes } from './data.js?v=20261002m';
+import { runEngine } from './rating.js?v=20261002m';
+import { store, isDemo } from './store.js?v=20261002m';
+import * as ranking from './v-ranking.js?v=20261002m';
+import * as matches from './v-matches.js?v=20261002m';
+import * as player from './v-player.js?v=20261002m';
+import * as analysis from './v-analysis.js?v=20261002m';
+import * as submit from './v-submit.js?v=20261002m';
+import * as board from './v-board.js?v=20261002m';
+import * as guide from './v-guide.js?v=20261002m';
+import * as tour from './v-tour.js?v=20261002m';
 
 const VIEWS = { ranking, matches, player, analysis, submit, board, guide, tour };
 const $ = s => document.querySelector(s);
@@ -155,12 +155,13 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('#modal
 function updateMeBtn() { $('#meBtn').textContent = app.me ? `내 선수: ${app.me}` : '내 선수 설정'; }
 function updateBadge() {
   const me = app.me, b = $('#inboxBadge');
-  if (!me) { b.hidden = true; return; }
+  if (!me) { b.hidden = true; const bm0 = $('#inboxBadgeM'); if (bm0) bm0.hidden = true; return; }
   const side = (s, id) => s.team1.includes(id) ? 1 : s.team2.includes(id) ? 2 : 0;
   const n = app.subs.filter(s => s.status === 'pending' && !isConfirmed(s) && s.submitter !== me && side(s, me) && side(s, me) !== side(s, s.submitter)).length
     + app.fixes.filter(f => f.status === 'pending' && !isConfirmed(f) && f.submitter !== me && f.team1.includes(me)).length;
   const nr = app.isAdmin() ? (app.pendingRegs || []).length : 0;
   b.textContent = n + nr; b.hidden = !(n + nr);
+  const bm = $('#inboxBadgeM'); if (bm) { bm.textContent = n + nr; bm.hidden = !(n + nr); }
 }
 
 async function route() {

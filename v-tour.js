@@ -1,4 +1,4 @@
-import { C, esc, ls, raceBadge } from './util.js?v=20261002l';
+import { C, esc, ls, raceBadge } from './util.js?v=20261002m';
 
 // v2 둘러보기 — v1.0 대비 바뀐 점 + 사용법 튜토리얼
 const CMP = [
