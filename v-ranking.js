@@ -1,5 +1,5 @@
-import { C, esc, pct, sign, signColor, tierBadge, raceBadge, raceLabel, formPills, sparkline, sample, go, fmtD, TIERS, TIER_COLOR, addDays, todayKST } from './util.js?v=20261009b';
-import { seasonTable, proTable, sides, ALL_SEASON } from './rating.js?v=20261009b';
+import { C, esc, pct, sign, signColor, tierBadge, raceBadge, raceLabel, formPills, sparkline, sample, go, fmtD, TIERS, TIER_COLOR, addDays, todayKST } from './util.js?v=20261010a';
+import { seasonTable, proTable, sides, ALL_SEASON } from './rating.js?v=20261010a';
 
 export function render(app, el, p) {
   const allTime = p.get('season') === 'all';
@@ -109,7 +109,7 @@ function row(r, i, sort, me) {
   const rank = !r.eligible ? '–' : sort === 'skill' ? r.rank : i + 1;
   const chg = r.eligible && sort === 'skill' ? (r.rankChg > 0 ? `<span class="up">▲${r.rankChg}</span>` : r.rankChg < 0 ? `<span class="down">▼${-r.rankChg}</span>` : '<span class="mute">–</span>') : '';
   const stk = Math.abs(r.streak) >= 2 ? (r.streak > 0 ? `${r.streak}연승` : `${-r.streak}연패`) : '';
-  const sub = [r.eligible ? '' : '배치중', stk, `${r.games}경기`, `상대 ${r.opps}명`].filter(Boolean).join(' · ');
+  const sub = `<span class="m-rec"><b>${r.w}승 ${r.l}패</b> ${pct(r.w, r.games)}% · </span>` + [r.eligible ? '' : '배치중', stk, `<span class="d-only">${r.games}경기 · </span>상대 ${r.opps}명`].filter(Boolean).join(' · ');
   return `<div class="rk ${r.id === me ? 'me' : ''} ${r.eligible ? '' : 'prov'}">
     <div class="num" style="font-weight:700">${rank}</div><div class="num small c-chg">${chg}</div>
     <div class="name">${raceBadge(r.race)}<div style="min-width:0"><a href="#/player?id=${encodeURIComponent(r.id)}">${esc(r.id)}</a><small>${sub}</small></div></div>
