@@ -172,7 +172,8 @@ label.lbl{display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--
 
 .m-rec{display:none}
 .m-rec b{color:var(--text2);font-weight:700}
-@media (max-width:980px){.m-rec{display:inline}.d-only{display:none}}
+.m-tier{display:none}
+@media (max-width:980px){.m-rec{display:inline}.d-only{display:none}.m-tier{display:inline;margin-left:7px}.m-tier .tier{font-size:11.5px;font-weight:700}}
 
 /* 결과 제출: 선수 검색 */
 .psearch{position:relative;flex:1 1 180px;min-width:160px}
