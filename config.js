@@ -6,7 +6,7 @@ window.RC_CONFIG = {
   READ_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVncnZ5bGdya3dqdHlla3B6bmF1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI4MDgxNDMsImV4cCI6MjA4ODM4NDE0M30.tIBkee7X97IDuBQQg8ugwOrLsW2RzCRoqM-CNEnR4Ao',
   WRITE_URL: 'https://myfemuhinzubepeppgzy.supabase.co',
   WRITE_KEY: 'sb_publishable_PrVb9nt47-HwK6Oz41qHUA_wWRQrOHi',
-  HIDE_IDS: ['Wonder', 'ceta', 'sika'],
+  HIDE_IDS: ['Wonder', 'ceta', 'sika', '[S.U]동탁', '[S.U]퍼피', '[S.U]maru'],
   SEASONS: [
     { key: '2025',   label: '2025 시즌', start: '2025-09-01', end: '2025-12-31' },
     { key: '2026Q1', label: '2026 1Q',   start: '2026-01-01', end: '2026-03-31' },

@@ -1,7 +1,7 @@
-import { esc, fmtD, timeAgo, todayKST, expected, C } from './util.js?v=20261009a';
-import { store, isDemo } from './store.js?v=20261009a';
-import { isConfirmed } from './data.js?v=20261009a';
-import { soloOdds } from './rating.js?v=20261009a';
+import { esc, fmtD, timeAgo, todayKST, expected, C } from './util.js?v=20261009b';
+import { store, isDemo } from './store.js?v=20261009b';
+import { isConfirmed } from './data.js?v=20261009b';
+import { soloOdds } from './rating.js?v=20261009b';
 
 let draft = null;
 let focusTeam = null; // 선수 추가 후 같은 칸에 다시 커서
@@ -179,7 +179,7 @@ function renderForm(app, box) {
       const all = pool();
       shown = !q ? all : [...all.filter(x => x.toLowerCase().startsWith(q)), ...all.filter(x => !x.toLowerCase().startsWith(q) && x.toLowerCase().includes(q))];
       hi = Math.min(hi, Math.max(shown.length - 1, 0));
-      sug.innerHTML = shown.slice(0, 50).map((x, i) => { const k = x.toLowerCase().indexOf(q); const label = q && k >= 0 ? esc(x.slice(0, k)) + '<b>' + esc(x.slice(k, k + q.length)) + '</b>' + esc(x.slice(k + q.length)) : esc(x); return `<button type="button" class="psug-i${i === hi ? ' on' : ''}" data-pick="${esc(x)}">${label}</button>`; }).join('')
+      sug.innerHTML = shown.map((x, i) => { const k = x.toLowerCase().indexOf(q); const label = q && k >= 0 ? esc(x.slice(0, k)) + '<b>' + esc(x.slice(k, k + q.length)) + '</b>' + esc(x.slice(k + q.length)) : esc(x); return `<button type="button" class="psug-i${i === hi ? ' on' : ''}" data-pick="${esc(x)}">${label}</button>`; }).join('')
         + (q && !shown.length ? `<div class="psug-empty">"${esc(inp.value.trim())}" 선수가 없어요</div>` : '')
         + `<button type="button" class="psug-i psug-new" data-pick="__new">＋ 목록에 없는 선수 등록 신청…</button>`;
       sug.hidden = false;
