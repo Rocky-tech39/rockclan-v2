@@ -1,5 +1,5 @@
-import { esc, pct, sign, signColor, tierBadge, raceBadge, raceLabel, TIER_COLOR, RACE_KO, fmtD, go, expected, formPills, todayKST, C, TIERS } from './util.js?v=20261007a';
-import { seasonTable, sides, soloOdds } from './rating.js?v=20261007a';
+import { esc, pct, sign, signColor, tierBadge, raceBadge, raceLabel, TIER_COLOR, RACE_KO, fmtD, go, expected, formPills, todayKST, C, TIERS } from './util.js?v=20261009a';
+import { seasonTable, sides, soloOdds } from './rating.js?v=20261009a';
 
 export function render(app, el, p) {
   const id = p.get('id') || (p.get('pick') ? '' : app.me);

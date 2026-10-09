@@ -1,4 +1,4 @@
-import { C, esc, ls, raceBadge } from './util.js?v=20261007a';
+import { C, esc, ls, raceBadge } from './util.js?v=20261009a';
 
 // v2 둘러보기 — v1.0 대비 바뀐 점 + 사용법 튜토리얼
 const CMP = [
@@ -32,7 +32,7 @@ const STEPS = [
     mock(`<div class="row" style="justify-content:flex-end"><span class="me-btn hl">내 선수 설정</span><span class="cta">+ 결과 제출</span></div>`)],
   ['결과 제출 열기', '<b>+ 결과 제출</b>(휴대폰은 아래 메뉴 <b>제출·확인</b>)을 누르고 경기 종류와 날짜를 고릅니다.',
     mock(`<div class="row"><span class="seg"><button class="on">프로리그</button><button>개인전</button><button>팀전</button></span><span class="fld small" style="display:inline-flex;align-items:center">10/02/2026 📅</span></div>`)],
-  ['팀에 선수 넣기', '팀1·팀2 칸의 <b>+ 선수</b>에서 참가자를 고릅니다. 잘못 넣었으면 이름을 눌러 빼면 돼요.',
+  ['팀에 선수 넣기', '팀1·팀2 칸에 <b>이름을 몇 글자 입력</b>하면(예: Ve → Veeny) 후보가 떠요. 누르거나 Enter로 추가하고, 잘못 넣었으면 이름을 눌러 빼면 돼요.',
     mock(`<div class="grid2" style="gap:8px"><div><div class="small mute">팀1</div><div class="row tb"><span class="chip">Rocky ✕</span><span class="chip">Pang ✕</span><span class="chip dash">+ 선수</span></div></div><div><div class="small mute">팀2</div><div class="row tb"><span class="chip">Veeny ✕</span><span class="chip dash">+ 선수</span></div></div></div>`)],
   ['세트 입력', '세트마다 <b>맵</b>과 <b>양쪽 선수</b>를 고르고, 이긴 쪽 버튼(<b>팀1 승 / 팀2 승</b>)을 누릅니다. <b>+ 개인전 세트</b>·<b>+ 팀전 세트</b>로 세트를 늘리세요. 스코어는 자동으로 계산됩니다.',
     mock(`<div class="mset"><span class="num mute">1</span><span class="fld small mp">투혼 ▾</span><span class="fld small">Rocky ▾</span><span class="fld small">Veeny ▾</span></div><div class="mset mset2"><span class="num"></span><span class="btn blue small">팀1 승</span><span class="btn small">팀2 승</span></div><div class="row" style="margin-top:6px"><span class="btn small">+ 개인전 세트</span><span class="btn small">+ 팀전 세트</span><span style="margin-left:auto" class="small mute">스코어 <b class="num" style="font-size:18px;color:var(--text)">1 : 0</b></span></div>`)],
@@ -52,7 +52,7 @@ const FAQ = [
   ['기존 사이트(v1.0) 기록이 바뀌나요?', '아니요. v2는 기존 사이트의 경기 기록을 읽어서 보여주기만 합니다. v2에서 제출·수정한 내용은 v2 화면에 반영되고, 공식 기록 정리는 운영진이 합니다.'],
   ['점수 계산 방식이 바뀌었나요?', `아직은 아니에요. 기본 점수는 <b>기존 ELO</b> 방식입니다. 개편 레이팅(v2)은 시뮬레이션 중이고, 랭킹 화면 오른쪽 위 <b>계산 방식</b>에서 "레이팅 v2"를 고르면 미리 볼 수 있어요.`],
   ['내 이름이 랭킹에 없어요', `이번 시즌 ${C.ELIGIBLE.GAMES}경기 + 서로 다른 상대 ${C.ELIGIBLE.OPPONENTS}명을 채우면 정식 순위에 올라갑니다. 랭킹의 <b>표본 충족만 보기</b>를 끄면 배치중인 선수도 보여요. 진행 중 시즌에 ${C.ELIGIBLE.INACTIVE_DAYS}일간 경기가 없으면 잠시 숨겨집니다.`],
-  ['명단에 내 아이디가 없어요', '<b>내 선수 설정</b> 창이나 결과 제출의 <b>+ 선수</b> 목록 맨 위 <b>＋ 목록에 없는 선수 등록 신청</b>에서 아이디·종족·티어를 넣어 신청하세요. <b>운영진이 승인하면</b> 목록에 나타납니다. 선수 화면의 <b>+ 선수 등록 신청</b> 버튼도 같아요.'],
+  ['명단에 내 아이디가 없어요', '<b>내 선수 설정</b> 창이나 결과 제출 선수 칸 목록 맨 아래 <b>＋ 목록에 없는 선수 등록 신청</b>에서 아이디·종족·티어를 넣어 신청하세요. <b>운영진이 승인하면</b> 목록에 나타납니다. 선수 화면의 <b>+ 선수 등록 신청</b> 버튼도 같아요.'],
   ['로그인은 없나요?', '베타 기간에는 "내 선수"를 직접 고르는 방식이에요. 다른 사람 이름으로 제출하지 말아 주세요. 로그인은 의견을 받아 검토 중입니다.'],
   ['이상한 점을 발견했어요', '오른쪽 아래 <b>의견 남기기</b>로 알려 주세요. 의견 게시판에서 다른 분들 의견에 공감도 눌러 주시면 우선순위로 반영합니다.']
 ];

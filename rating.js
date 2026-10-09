@@ -1,4 +1,4 @@
-import { C, tierIdx, expected, seasonOf } from './util.js?v=20261007a';
+import { C, tierIdx, expected, seasonOf } from './util.js?v=20261009a';
 
 // 한 경기 → 양쪽 선수 목록
 export const sides = m => m.kind === 'solo' ? [[m.p1], [m.p2]] : [m.t1, m.t2];

@@ -170,6 +170,17 @@ label.lbl{display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--
 .tabbar{display:none}
 .vs{display:grid;grid-template-columns:minmax(0,1fr) 220px minmax(0,1fr);align-items:center;gap:16px;padding:18px 0 10px}
 
+/* 결과 제출: 선수 검색 */
+.psearch{position:relative;flex:1 1 180px;min-width:160px}
+.psearch .fld{width:100%;min-height:36px;padding:6px 10px;border-style:dashed;background:#fff}
+.psearch .fld:focus{border-style:solid;border-color:var(--acc);outline:none;box-shadow:0 0 0 3px rgba(47,91,234,.15)}
+.psug{position:absolute;left:0;right:0;top:calc(100% + 4px);z-index:40;background:#fff;border:1px solid var(--line2);border-radius:10px;box-shadow:0 10px 28px rgba(16,24,40,.16);max-height:280px;overflow:auto;padding:4px}
+.psug-i{display:block;width:100%;text-align:left;background:none;border:0;border-radius:7px;padding:9px 10px;font-size:14px;cursor:pointer;color:var(--text)}
+.psug-i b{color:var(--acc)}
+.psug-i.on,.psug-i:hover{background:var(--accbg)}
+.psug-new{color:var(--acc);font-weight:600;border-top:1px solid var(--line);border-radius:0 0 7px 7px;margin-top:2px}
+.psug-empty{padding:9px 10px;font-size:13px;color:var(--mute)}
+
 /* player: 상대 티어별 */
 .tvt{display:flex;flex-direction:column;gap:2px}
 .tvt-r{display:grid;grid-template-columns:150px minmax(0,1fr) 96px 52px 60px;gap:12px;align-items:center;padding:8px 10px;border-radius:8px;font-size:14px}

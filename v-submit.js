@@ -1,9 +1,10 @@
-import { esc, fmtD, timeAgo, todayKST, expected, C } from './util.js?v=20261007a';
-import { store, isDemo } from './store.js?v=20261007a';
-import { isConfirmed } from './data.js?v=20261007a';
-import { soloOdds } from './rating.js?v=20261007a';
+import { esc, fmtD, timeAgo, todayKST, expected, C } from './util.js?v=20261009a';
+import { store, isDemo } from './store.js?v=20261009a';
+import { isConfirmed } from './data.js?v=20261009a';
+import { soloOdds } from './rating.js?v=20261009a';
 
 let draft = null;
+let focusTeam = null; // 선수 추가 후 같은 칸에 다시 커서
 // 맵 이름 앞의 "2:2", "3:3", "4:4" → 팀당 인원 (없으면 0 = 개인전 맵)
 const teamSize = map => { const m = /^(\d)\s*:\s*(\d)/.exec(map || ''); return m ? +m[1] : 0; };
 // 세트 맵이 바뀌면 개인전/팀전 형식을 맵에 맞춤
@@ -119,7 +120,7 @@ function renderForm(app, box) {
     const max = d.kind === 'solo' ? 1 : 4;
     return `<div class="row" style="background:var(--bg);border:1px solid var(--line2);border-radius:8px;padding:6px;min-height:46px;gap:6px">
       ${arr.map(x => `<button class="chip" data-rm="${team}|${esc(x)}" title="빼기">${esc(x)} ✕</button>`).join('')}
-      ${arr.length < max ? `<select class="fld" data-add="${team}" style="min-height:34px;padding:4px 8px;border-style:dashed" aria-label="팀 ${team} 선수 추가"><option value="">+ 선수</option><option value="__new">＋ 목록에 없는 선수 등록 신청…</option>${ids.filter(x => !d.t1.includes(x) && !d.t2.includes(x)).map(x => `<option>${esc(x)}</option>`).join('')}</select>` : ''}
+      ${arr.length < max ? `<div class="psearch"><input class="fld" data-add="${team}" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="+ 선수 이름 입력 (예: Ve)" aria-label="팀 ${team} 선수 검색해서 추가"><div class="psug" data-sug="${team}" hidden></div></div>` : ''}
     </div>`;
   };
   const setRow = (s, i) => {
@@ -168,7 +169,34 @@ function renderForm(app, box) {
   const rerender = () => renderForm(app, box);
   box.querySelectorAll('[data-kind]').forEach(b => b.onclick = () => { const k = b.dataset.kind; draft = { ...newDraft(), kind: k, date: d.date, t1: k === 'solo' ? d.t1.slice(0, 1) : d.t1, t2: k === 'solo' ? d.t2.slice(0, 1) : d.t2 }; rerender(); });
   box.querySelector('#fDate').onchange = e => { d.date = e.target.value; rerender(); };
-  box.querySelectorAll('[data-add]').forEach(s => s.onchange = () => { const team = s.dataset.add; if (s.value === '__new') { s.value = ''; return app.registerPlayer(id => { if (app.players.has(id)) d['t' + team].push(id); rerender(); }); } if (s.value) d['t' + team].push(s.value); rerender(); });
+  box.querySelectorAll('[data-add]').forEach(inp => {
+    const team = inp.dataset.add, sug = box.querySelector(`[data-sug="${team}"]`);
+    const pool = () => ids.filter(x => !d.t1.includes(x) && !d.t2.includes(x));
+    let hi = 0, shown = [];
+    const add = id => { if (id === '__new') return app.registerPlayer(nid => { if (app.players.has(nid)) d['t' + team].push(nid); focusTeam = team; rerender(); }); d['t' + team].push(id); focusTeam = team; rerender(); };
+    const draw = () => {
+      const q = inp.value.trim().toLowerCase();
+      const all = pool();
+      shown = !q ? all : [...all.filter(x => x.toLowerCase().startsWith(q)), ...all.filter(x => !x.toLowerCase().startsWith(q) && x.toLowerCase().includes(q))];
+      hi = Math.min(hi, Math.max(shown.length - 1, 0));
+      sug.innerHTML = shown.slice(0, 50).map((x, i) => { const k = x.toLowerCase().indexOf(q); const label = q && k >= 0 ? esc(x.slice(0, k)) + '<b>' + esc(x.slice(k, k + q.length)) + '</b>' + esc(x.slice(k + q.length)) : esc(x); return `<button type="button" class="psug-i${i === hi ? ' on' : ''}" data-pick="${esc(x)}">${label}</button>`; }).join('')
+        + (q && !shown.length ? `<div class="psug-empty">"${esc(inp.value.trim())}" 선수가 없어요</div>` : '')
+        + `<button type="button" class="psug-i psug-new" data-pick="__new">＋ 목록에 없는 선수 등록 신청…</button>`;
+      sug.hidden = false;
+      sug.querySelectorAll('[data-pick]').forEach(b => b.onmousedown = e => { e.preventDefault(); add(b.dataset.pick); });
+    };
+    inp.oninput = () => { hi = 0; draw(); };
+    inp.onclick = draw; // 직접 누르면 전체 목록, 추가 후 자동 포커스 땐 목록을 띄우지 않음
+    inp.onblur = () => setTimeout(() => { sug.hidden = true; }, 120);
+    inp.onkeydown = e => {
+      if (e.isComposing) return;
+      if (e.key === 'ArrowDown') { e.preventDefault(); hi = Math.min(hi + 1, shown.length - 1); draw(); }
+      else if (e.key === 'ArrowUp') { e.preventDefault(); hi = Math.max(hi - 1, 0); draw(); }
+      else if (e.key === 'Enter') { e.preventDefault(); if (shown[hi]) add(shown[hi]); }
+      else if (e.key === 'Escape') { sug.hidden = true; inp.blur(); }
+    };
+  });
+  if (focusTeam) { const fi = box.querySelector(`[data-add="${focusTeam}"]`); focusTeam = null; if (fi) fi.focus(); }
   box.querySelectorAll('[data-rm]').forEach(b => b.onclick = () => { const [t, id] = b.dataset.rm.split('|'); d['t' + t] = d['t' + t].filter(x => x !== id); d.sets.forEach(s => { if (s.p1 === id) s.p1 = ''; if (s.p2 === id) s.p2 = ''; if (s.t1) s.t1 = s.t1.filter(x => x !== id); if (s.t2) s.t2 = s.t2.filter(x => x !== id); }); rerender(); });
   box.querySelectorAll('[data-map]').forEach(s => s.onchange = () => { const st = d.sets[+s.dataset.map]; st.map = s.value; if (d.kind !== 'solo') fitSet(d, st); rerender(); });
   box.querySelectorAll('[data-sp]').forEach(s => s.onchange = () => { const [i, k] = s.dataset.sp.split('|'); d.sets[+i][k] = s.value; rerender(); });
