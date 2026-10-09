@@ -33,6 +33,7 @@ button,input,select,textarea{font:inherit;color:inherit}
 .cta{background:var(--acc);color:#fff;font-weight:700;font-size:14px;padding:10px 16px;border-radius:9px;white-space:nowrap}
 .cta:hover{color:#fff;background:var(--acch)}
 main{padding:28px 20px 100px;outline:none}
+main.wrap{padding:28px 20px 40px}
 .loading{padding:80px 0;text-align:center;color:var(--mute)}
 .foot{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;color:var(--mute);font-size:12px;padding-bottom:90px}
 
@@ -327,7 +328,8 @@ a.newtile:hover{border-color:var(--acc);box-shadow:0 4px 14px rgba(47,91,234,.12
   .tabbar a:active .ti{background:var(--accbg)}
   .tbadge{position:absolute;top:2px;left:calc(50% + 12px);min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:#E5484D;color:#fff;font:700 11px var(--num);display:flex;align-items:center;justify-content:center;border:2px solid #fff}
   .tbadge[hidden]{display:none}
-  main{padding-bottom:120px}
+  main.wrap{padding:18px 14px 24px}
+  .foot.wrap{padding-bottom:calc(110px + env(safe-area-inset-bottom))}
   .fab{bottom:84px;right:12px;padding:9px 14px;font-size:13px;opacity:.95}
   .cta{display:none}
   h1.title{font-size:26px}
