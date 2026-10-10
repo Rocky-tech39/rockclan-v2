@@ -1,5 +1,5 @@
-import { esc, pct, sign, signColor, tierBadge, raceBadge, raceLabel, TIER_COLOR, RACE_KO, fmtD, go, expected, formPills, todayKST, C, TIERS } from './util.js?v=20261010c';
-import { seasonTable, sides, soloOdds } from './rating.js?v=20261010c';
+import { esc, pct, sign, signColor, tierBadge, raceBadge, raceLabel, TIER_COLOR, RACE_KO, fmtD, go, expected, formPills, todayKST, C, TIERS } from './util.js?v=20261010d';
+import { seasonTable, sides, soloOdds } from './rating.js?v=20261010d';
 
 export function render(app, el, p) {
   const id = p.get('id') || (p.get('pick') ? '' : app.me);
@@ -16,6 +16,8 @@ export function render(app, el, p) {
   const inS = app.matches.filter(m => m.kind !== 'pro' && !m.dup && m.date >= season.start && m.date <= season.end && eng.events.has(m.id) && sides(m).flat().includes(id));
 
   // 집계
+  const kw = { solo: [0, 0], team: [0, 0] };
+  for (const m of inS) { const [A] = sides(m); const win = A.includes(id) ? m.win1 : !m.win1; const k = m.kind === 'solo' ? 'solo' : 'team'; kw[k][win ? 0 : 1]++; }
   const vr = {}, vt = {}, maps = {}, opp = {}, part = {};
   for (const m of inS) {
     const [A, B] = sides(m); const mine = A.includes(id) ? A : B, other = mine === A ? B : A;
@@ -58,8 +60,8 @@ export function render(app, el, p) {
     ${me ? `<div class="kv">
       <div><div class="k">레이팅${me.rank ? ` · ${me.rank}위` : ''}</div><div class="v" style="color:var(--acc2)">${Math.round(me.r)}${me.eligible ? '' : '?'}</div></div>
       <div><div class="k">시즌 최고</div><div class="v">${Math.round(Math.max(...hist.map(h => h.r)))}</div></div>
-      <div><div class="k">전적</div><div class="v">${me.w}-${me.l}</div></div>
-      <div><div class="k">승률</div><div class="v">${pct(me.w, me.games)}%</div></div></div>` : `<div class="mute">${esc(season.label)} 경기 기록이 없습니다</div>`}
+      <div><div class="k">전적 <span class="mute">전체</span></div><div class="v">${me.w}-${me.l}</div><div class="kv-sub">개인전 <b>${kw.solo[0]}-${kw.solo[1]}</b> · 팀전 <b>${kw.team[0]}-${kw.team[1]}</b></div></div>
+      <div><div class="k">승률 <span class="mute">전체</span></div><div class="v">${pct(me.w, me.games)}%</div><div class="kv-sub">개인전 <b>${pct(kw.solo[0], kw.solo[0] + kw.solo[1])}%</b> · 팀전 <b>${pct(kw.team[0], kw.team[0] + kw.team[1])}%</b></div></div></div>` : `<div class="mute">${esc(season.label)} 경기 기록이 없습니다</div>`}
   </section>
   ${me ? `
   <section class="grid2" style="grid-template-columns:minmax(0,2fr) minmax(0,1fr)">

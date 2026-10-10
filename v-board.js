@@ -1,6 +1,6 @@
-import { esc, timeAgo, go } from './util.js?v=20261010c';
-import { store, isDemo } from './store.js?v=20261010c';
-import { CHANGELOG, DONE_POSTS, HELD_POSTS } from './changelog.js?v=20261010c';
+import { esc, timeAgo, go } from './util.js?v=20261010d';
+import { store, isDemo } from './store.js?v=20261010d';
+import { CHANGELOG, DONE_POSTS, HELD_POSTS } from './changelog.js?v=20261010d';
 
 export const SCREENS = { ranking: '랭킹', matches: '경기 기록', analysis: '전력 분석', player: '선수 프로필', submit: '결과 제출·확인', board: '의견 게시판', guide: '안내', etc: '기타·전체' };
 export const CATS = ['좋아요', '불편해요', '버그', '아이디어', '레이팅 로직', '기타'];
