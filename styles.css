@@ -191,6 +191,17 @@ label.lbl{display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--
 .ulog-it .tag{text-align:center;margin-top:2px}
 @media (max-width:980px){.ulog-day{grid-template-columns:44px minmax(0,1fr);gap:8px}.ulog-it{grid-template-columns:52px minmax(0,1fr)}.ulog-it .tag{font-size:10.5px;padding:2px 4px}}
 
+/* 결과 확인: 제출 세트 펼치기 */
+.subwrap .subrow:hover{background:var(--accbg)!important}
+.sub-caret{font-size:11px;color:var(--mute);margin-left:4px}
+.subsets{margin:2px 0 0;padding:8px 14px 10px 92px;display:flex;flex-direction:column;gap:4px;border-left:3px solid var(--infoline);margin-left:14px}
+.sset{display:grid;grid-template-columns:44px 88px minmax(0,1fr) 22px minmax(0,1fr) 56px;gap:8px;align-items:center;font-size:13.5px;padding:4px 0;border-bottom:1px dashed var(--line)}
+.sset:last-child{border-bottom:0}
+.sset .sa{text-align:right}
+.sset .win{font-weight:700;color:var(--acc)}
+.sset .sres{text-align:right;font-size:12.5px}
+@media (max-width:980px){.subsets{padding:8px 4px 10px 10px;margin-left:6px}.sset{grid-template-columns:36px 46px minmax(0,1fr) 16px minmax(0,1fr);gap:6px;font-size:13px}.sset>span:nth-child(2){font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.sset .sa,.sset .sb{overflow-wrap:anywhere}.sset .sres{display:none}}
+
 /* 결과 제출: 선수 검색 */
 .psearch{position:relative;flex:1 1 180px;min-width:160px}
 .psearch .fld{width:100%;min-height:36px;padding:6px 10px;border-style:dashed;background:#fff}

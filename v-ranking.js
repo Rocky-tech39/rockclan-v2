@@ -1,5 +1,5 @@
-import { C, esc, pct, sign, signColor, tierBadge, raceBadge, raceLabel, formPills, sparkline, sample, go, fmtD, TIERS, TIER_COLOR, addDays, todayKST } from './util.js?v=20261010d';
-import { seasonTable, proTable, sides, ALL_SEASON } from './rating.js?v=20261010d';
+import { C, esc, pct, sign, signColor, tierBadge, raceBadge, raceLabel, formPills, sparkline, sample, go, fmtD, TIERS, TIER_COLOR, addDays, todayKST } from './util.js?v=20261011a';
+import { seasonTable, proTable, sides, ALL_SEASON } from './rating.js?v=20261011a';
 
 export function render(app, el, p) {
   const allTime = p.get('season') === 'all';

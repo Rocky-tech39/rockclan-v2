@@ -1,10 +1,11 @@
-import { esc, fmtD, timeAgo, todayKST, expected, C } from './util.js?v=20261010d';
-import { store, isDemo } from './store.js?v=20261010d';
-import { isConfirmed } from './data.js?v=20261010d';
-import { soloOdds } from './rating.js?v=20261010d';
+import { esc, fmtD, timeAgo, todayKST, expected, C } from './util.js?v=20261011a';
+import { store, isDemo } from './store.js?v=20261011a';
+import { isConfirmed } from './data.js?v=20261011a';
+import { soloOdds } from './rating.js?v=20261011a';
 
 let draft = null;
-let focusTeam = null; // 선수 추가 후 같은 칸에 다시 커서
+let focusTeam = null;
+const openSubs = new Set(); // 세트 기록을 펼쳐 둔 제출 // 선수 추가 후 같은 칸에 다시 커서
 // 맵 이름 앞의 "2:2", "3:3", "4:4" → 팀당 인원 (없으면 0 = 개인전 맵)
 const teamSize = map => { const m = /^(\d)\s*:\s*(\d)/.exec(map || ''); return m ? +m[1] : 0; };
 // 세트 맵이 바뀌면 개인전/팀전 형식을 맵에 맞춤
@@ -46,11 +47,18 @@ export async function render(app, el, p) {
   const ST = { pending: ['대기', 'mute'], confirmed: ['확인됨 · 반영', 'ok'], auto: ['자동 반영', 'ok'], disputed: ['이의 제기', 'warn'], canceled: ['취소', 'mute'] };
   const title = s => `${s.kind === 'pro' ? '프로리그' : s.kind === 'solo' ? '개인전' : '팀전'} · ${s.team1.map(esc).join(' · ')} vs ${s.team2.map(esc).join(' · ')}`;
   const score = s => { const w = s.sets.filter(x => x.side === 1).length; return `${w}:${s.sets.length - w}`; };
-  const subRow = (s, actions) => `<div class="subrow" style="display:grid;grid-template-columns:64px minmax(0,1fr) 60px auto;gap:12px;align-items:center;background:var(--card2);border-radius:10px;padding:10px 14px;margin-top:8px">
+  const setDetail = s => {
+    if (!openSubs.has(s.id) || !Array.isArray(s.sets)) return '';
+    const w = side => side === 1 ? 'w1' : side === 2 ? 'w2' : '';
+    return `<div class="subsets">${s.sets.map((x, i) => {
+      const A = x.p1 ? [x.p1] : (x.t1 || (s.kind !== 'pro' ? s.team1 : [])), B = x.p2 ? [x.p2] : (x.t2 || (s.kind !== 'pro' ? s.team2 : []));
+      return `<div class="sset ${w(x.side)}"><span class="num mute">${i + 1}세트</span><span class="mute">${esc(x.map || '')}</span><span class="sa${x.side === 1 ? ' win' : ''}">${A.map(esc).join(' · ') || '-'}</span><span class="vs mute">vs</span><span class="sb${x.side === 2 ? ' win' : ''}">${B.map(esc).join(' · ') || '-'}</span><span class="sres">${x.side ? `<b>${x.side === 1 ? '팀1' : '팀2'} 승</b>` : '<span class="mute">승자 없음</span>'}</span></div>`; }).join('')}</div>`;
+  };
+  const subRow = (s, actions) => `<div class="subwrap${openSubs.has(s.id) ? ' open' : ''}"><div class="subrow" data-exp="${s.id}" title="눌러서 세트 기록 보기" style="cursor:pointer;display:grid;grid-template-columns:64px minmax(0,1fr) 60px auto;gap:12px;align-items:center;background:var(--card2);border-radius:10px;padding:10px 14px;margin-top:8px">
     <span class="num mute small">${fmtD(s.match_date)}</span>
     <div style="min-width:0"><div style="font-weight:600;overflow:hidden;text-overflow:ellipsis">${title(s)}</div><div class="small mute">제출 ${esc(s.submitter)} · ${timeAgo(s.created_at)}${s.confirmed_by ? ` · 확인 ${esc(s.confirmed_by)}` : ''}${s.dispute_reason ? ` · 사유: ${esc(s.dispute_reason)}` : ''}</div></div>
-    <b class="num" style="font-size:18px;text-align:center">${score(s)}</b>
-    <div class="row">${actions || `<span class="tag ${ST[statusOf(s)][1]}">${ST[statusOf(s)][0]}</span>`}</div></div>`;
+    <b class="num" style="font-size:18px;text-align:center">${score(s)}<span class="sub-caret">${openSubs.has(s.id) ? '▴' : '▾'}</span></b>
+    <div class="row">${actions || `<span class="tag ${ST[statusOf(s)][1]}">${ST[statusOf(s)][0]}</span>`}</div></div>${setDetail(s)}</div>`;
 
   el.innerHTML = `
   <div class="head"><div><div class="eyebrow">SUBMIT &amp; CONFIRM</div><h1 class="title">결과 제출 · 확인</h1>
@@ -66,13 +74,14 @@ export async function render(app, el, p) {
       <div><b>${esc(p.id)}</b> <span class="small mute">· ${esc(RACE_KO_[p.race] || p.race || '')} · ${esc(p.tier || '')}</span><div class="small mute">신청 ${esc(r.submitter)} · ${timeAgo(r.created_at)}</div></div>
       <div class="row">${app.isAdmin() ? `<button class="btn blue" data-regok="${r.id}">승인</button><button class="btn" data-regno="${r.id}">거절</button>` : '<span class="tag mute">승인 대기</span>'}</div></div>`; }).join('')}</section>` : ''}
   <section class="card" id="newForm"></section>
-  ${mine.length ? `<section class="card"><h2>내가 제출한 결과</h2>${mine.map(s => subRow(s, s.status === 'pending' && !isConfirmed(s) ? `<span class="tag mute">확인 대기</span><button class="btn" data-cancel="${s.id}">취소</button>` : '')).join('')}</section>` : ''}
-  ${myFixes.length ? `<section class="card"><h2>내가 올린 수정·삭제 요청</h2>${myFixes.map(f => fixRow(f, f.status === 'pending' && !isConfirmed(f) ? `<span class="tag mute">확인 대기</span><button class="btn" data-cancel="${f.id}">취소</button>` : '')).join('')}</section>` : ''}
+  ${mine.length ? `<section class="card"><h2>내가 제출한 결과</h2>${mine.map(s => subRow(s, s.status === 'pending' && !isConfirmed(s) ? (app.isAdmin() ? `<button class="btn blue" data-ok="${s.id}">운영진 승인</button>` : `<span class="tag mute">확인 대기</span>`) + `<button class="btn" data-cancel="${s.id}">취소</button>` : '')).join('')}</section>` : ''}
+  ${myFixes.length ? `<section class="card"><h2>내가 올린 수정·삭제 요청</h2>${myFixes.map(f => fixRow(f, f.status === 'pending' && !isConfirmed(f) ? (app.isAdmin() ? `<button class="btn blue" data-ok="${f.id}">운영진 승인</button>` : `<span class="tag mute">확인 대기</span>`) + `<button class="btn" data-cancel="${f.id}">취소</button>` : '')).join('')}</section>` : ''}
   ${doneFixes.length ? `<section class="card"><h2>반영된 수정·삭제 <span class="mute">v2에 반영됨 · 운영진은 공식 DB에도 옮겨 주세요</span></h2>${doneFixes.map(f => fixRow(f)).join('')}</section>` : ''}
-  ${others.length ? `<section class="card"><h2>최근 제출된 결과 <span class="mute">전체 공개</span></h2>${others.map(s => subRow(s)).join('')}</section>` : ''}
+  ${others.length ? `<section class="card"><h2>최근 제출된 결과 <span class="mute">전체 공개</span></h2>${others.map(s => subRow(s, app.isAdmin() && s.status === 'pending' && !isConfirmed(s) ? `<span class="tag mute">확인 대기</span><button class="btn blue" data-ok="${s.id}">운영진 승인</button>` : '')).join('')}</section>` : ''}
   </div>`;
 
   const sm = el.querySelector('[data-setme]'); if (sm) sm.onclick = () => app.pickMe();
+  el.querySelectorAll('[data-exp]').forEach(r => r.onclick = e => { if (e.target.closest('button,a')) return; const id = r.dataset.exp; openSubs.has(id) ? openSubs.delete(id) : openSubs.add(id); render(app, el, p); });
   el.querySelectorAll('[data-ok]').forEach(b => b.onclick = async () => {
     b.disabled = true;
     try { await store.update('submissions', b.dataset.ok, { status: 'confirmed', confirmed_by: me, confirmed_at: new Date().toISOString() }); app.toast('확인했습니다. 기록에 반영됩니다'); await app.reloadSubs(); }
@@ -215,8 +224,10 @@ function renderForm(app, box) {
     const btn = box.querySelector('#fGo'); btn.disabled = true;
     const sets = d.sets.map(s => s.type === 'solo' ? { map: s.map, p1: s.p1, p2: s.p2, winner: s.side === 1 ? s.p1 : s.p2, side: s.side } : { map: s.map, t1: s.t1, t2: s.t2, side: s.side });
     try {
-      await store.insert('submissions', { match_date: d.date, kind: d.kind, team1: d.t1, team2: d.t2, sets, submitter: app.me, confirmer: d.confirmer || null, status: 'pending' });
-      draft = null; app.toast('제출했습니다. 상대 팀 확인을 기다립니다'); await app.reloadSubs();
+      const row = await store.insert('submissions', { match_date: d.date, kind: d.kind, team1: d.t1, team2: d.t2, sets, submitter: app.me, confirmer: d.confirmer || null, status: 'pending' });
+      const admin = app.isAdmin();
+      if (admin) await store.update('submissions', row.id, { status: 'confirmed', confirmed_by: app.me, confirmed_at: new Date().toISOString() });
+      draft = null; app.toast(admin ? '운영진 제출이라 바로 반영했어요' : '제출했습니다. 상대 팀 확인을 기다립니다'); await app.reloadSubs();
     } catch (e) { app.toast(e.message); btn.disabled = false; }
   };
 }

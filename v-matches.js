@@ -1,7 +1,7 @@
-import { esc, fmtD, go, sign } from './util.js?v=20261010d';
-import { sides } from './rating.js?v=20261010d';
-import { store } from './store.js?v=20261010d';
-import { timeAgo } from './util.js?v=20261010d';
+import { esc, fmtD, go, sign } from './util.js?v=20261011a';
+import { sides } from './rating.js?v=20261011a';
+import { store } from './store.js?v=20261011a';
+import { timeAgo } from './util.js?v=20261011a';
 
 export function render(app, el, p) {
   const eng = app.engine(app.method, 'all');
@@ -155,9 +155,11 @@ function openFix(app, m) {
       const players = [...new Set(m.kind === 'pro' ? [...m.t1, ...m.t2] : sides(m).flat())];
       const btn = md.querySelector('#fxGo'); btn.disabled = true;
       try {
-        await store.insert('submissions', { match_date: m.date, kind: 'solo', team1: players, team2: [], status: 'pending', submitter: app.me,
+        const row = await store.insert('submissions', { match_date: m.date, kind: 'solo', team1: players, team2: [], status: 'pending', submitter: app.me,
           sets: { fix: { target: m.id, del, edit, reason, summary: parts.join(', '), title: m.kind === 'pro' ? `프로리그 ${m.t1.join('·')} vs ${m.t2.join('·')}` : label(m) } } });
-        app.closeModal(); app.toast('수정 요청을 올렸어요. 상대 선수 확인을 기다립니다'); await app.reloadSubs();
+        const admin = app.isAdmin();
+        if (admin) await store.update('submissions', row.id, { status: 'confirmed', confirmed_by: app.me, confirmed_at: new Date().toISOString() });
+        app.closeModal(); app.toast(admin ? '운영진 요청이라 바로 반영했어요' : '수정 요청을 올렸어요. 상대 선수 확인을 기다립니다'); await app.reloadSubs();
       } catch (e) { app.toast(e.message); btn.disabled = false; }
     };
   });

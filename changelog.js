@@ -2,6 +2,10 @@
 // type: new(새 기능) / improve(개선) / fix(수정)
 // posts: 반영한 의견 게시판 글 id → 게시판에서 해당 글에 "반영완료" 표시
 export const CHANGELOG = [
+  { date: '2026-10-11', items: [
+    { type: 'new', text: '운영진(Rocky·MiSTY·Strive·Pang·Friend)이 올린 결과·수정 요청은 상대 확인 없이 바로 반영, 대기 중인 결과도 운영진이 승인 가능' },
+    { type: 'improve', text: '결과 확인: 제출된 결과를 누르면 세트별 맵·선수·승자가 펼쳐져서 확인하기 쉬워짐' }
+  ] },
   { date: '2026-10-10', items: [
     { type: 'improve', text: '선수 프로필: 전적·승률 아래에 개인전/팀전 따로 표시 (랭킹의 개인전·팀전 탭은 원래 그 종류 전적만 보여줘요)' },
     { type: 'improve', text: '모바일 랭킹: 이름 옆에 티어, 아래 줄에 승-패·승률 표시' }
