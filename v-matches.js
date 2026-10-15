@@ -1,7 +1,7 @@
-import { esc, fmtD, go, sign } from './util.js?v=20261015a';
-import { sides } from './rating.js?v=20261015a';
-import { store } from './store.js?v=20261015a';
-import { timeAgo } from './util.js?v=20261015a';
+import { esc, fmtD, go, sign } from './util.js?v=20261015b';
+import { sides } from './rating.js?v=20261015b';
+import { store } from './store.js?v=20261015b';
+import { timeAgo } from './util.js?v=20261015b';
 
 export function render(app, el, p) {
   const eng = app.engine(app.method, 'all');
@@ -76,7 +76,7 @@ function setRow(eng, s, i) {
   const d = ev ? Math.abs(ev.delta[A[0]]) : 0;
   return `<div class="set">
     <span class="num mute">${i + 1}</span><span class="c-map" style="color:var(--text2)">${esc(s.map)}</span>
-    <span class="a ${s.win1 ? 'win' : 'lose'}">${upA ? '<span class="tag info">이변</span> ' : ''}${A.map(P).join(' · ')}</span>
+    <span class="a ${s.win1 ? 'win' : 'lose'}">${s.ace ? '<span class="tag ace">에결</span> ' : ''}${upA ? '<span class="tag info">이변</span> ' : ''}${A.map(P).join(' · ')}</span>
     <div class="pbar duo"><span class="pa${pa > 50 ? ' fav' : ''}" style="text-align:right">${pa}</span><div class="bar"><i class="t1" style="width:${pa}%"></i><i class="t2"></i></div><span class="pb${pa < 50 ? ' fav' : ''}">${100 - pa}</span></div>
     <span class="${!s.win1 ? 'win' : 'lose'}">${B.map(P).join(' · ')}${upB ? ' <span class="tag info">이변</span>' : ''}</span>
     <span class="num" style="text-align:right;color:var(--text2)">±${d.toFixed(1)}</span></div>`;

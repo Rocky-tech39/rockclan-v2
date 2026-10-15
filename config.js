@@ -22,5 +22,8 @@ window.RC_CONFIG = {
   V2: { TIER_STEP: 100, K_SOLO: 16, K_TEAM: 12, PROVISIONAL_GAMES: 10, PROVISIONAL_MULT: 2, SOFT_RESET: 0.5 },
   // 랭킹 등록 조건
   ELIGIBLE: { GAMES: 10, OPPONENTS: 5, INACTIVE_DAYS: 14 },
-  AUTO_CONFIRM_HOURS: 48
+  AUTO_CONFIRM_HOURS: 48,
+  // 테스트·예시로 넣었던 제출 숨김 (제출자 이름 / 등록 신청 선수)
+  TEST_SUBMITTERS: ['예시 데이터', '__connection_test', '__deploy_bundle'],
+  TEST_PLAYERS: ['대머리독수리']
 };

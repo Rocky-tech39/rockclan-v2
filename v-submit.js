@@ -1,7 +1,7 @@
-import { esc, fmtD, timeAgo, todayKST, expected, C } from './util.js?v=20261015a';
-import { store, isDemo } from './store.js?v=20261015a';
-import { isConfirmed } from './data.js?v=20261015a';
-import { soloOdds } from './rating.js?v=20261015a';
+import { esc, fmtD, timeAgo, todayKST, expected, C } from './util.js?v=20261015b';
+import { store, isDemo } from './store.js?v=20261015b';
+import { isConfirmed } from './data.js?v=20261015b';
+import { soloOdds } from './rating.js?v=20261015b';
 
 let draft = null;
 let focusTeam = null;
@@ -52,7 +52,7 @@ export async function render(app, el, p) {
     const w = side => side === 1 ? 'w1' : side === 2 ? 'w2' : '';
     return `<div class="subsets">${s.sets.map((x, i) => {
       const A = x.p1 ? [x.p1] : (x.t1 || (s.kind !== 'pro' ? s.team1 : [])), B = x.p2 ? [x.p2] : (x.t2 || (s.kind !== 'pro' ? s.team2 : []));
-      return `<div class="sset ${w(x.side)}"><span class="num mute">${i + 1}세트</span><span class="mute">${esc(x.map || '')}</span><span class="sa${x.side === 1 ? ' win' : ''}">${A.map(esc).join(' · ') || '-'}</span><span class="vs mute">vs</span><span class="sb${x.side === 2 ? ' win' : ''}">${B.map(esc).join(' · ') || '-'}</span><span class="sres">${x.side ? `<b>${x.side === 1 ? '팀1' : '팀2'} 승</b>` : '<span class="mute">승자 없음</span>'}</span></div>`; }).join('')}</div>`;
+      return `<div class="sset ${w(x.side)}"><span class="num mute">${i + 1}세트</span><span class="mute">${x.ace ? '<span class="tag ace">에결</span> ' : ''}${esc(x.map || '')}</span><span class="sa${x.side === 1 ? ' win' : ''}">${A.map(esc).join(' · ') || '-'}</span><span class="vs mute">vs</span><span class="sb${x.side === 2 ? ' win' : ''}">${B.map(esc).join(' · ') || '-'}</span><span class="sres">${x.side ? `<b>${x.side === 1 ? '팀1' : '팀2'} 승</b>` : '<span class="mute">승자 없음</span>'}</span></div>`; }).join('')}</div>`;
   };
   const subRow = (s, actions) => `<div class="subwrap${openSubs.has(s.id) ? ' open' : ''}"><div class="subrow" data-exp="${s.id}" title="눌러서 세트 기록 보기" style="cursor:pointer;display:grid;grid-template-columns:64px minmax(0,1fr) 60px auto;gap:12px;align-items:center;background:var(--card2);border-radius:10px;padding:10px 14px;margin-top:8px">
     <span class="num mute small">${fmtD(s.match_date)}</span>
@@ -117,7 +117,7 @@ function renderForm(app, box) {
   const ids = [...app.players.keys()].filter(x => !C.HIDE_IDS.includes(x)).sort((a, b) => a.localeCompare(b));
   const maps = (app.maps.length ? app.maps.map(m => m.map_name) : ['투혼', '폴리포이드', '폴스타', '녹아웃', '옥타곤', '애티튜드']);
   const teamMaps = ['2:2생컨', '2:2투혼', '3:3헌터', '3:3생컨', '4:4헌터'];
-  const allMaps = [...new Set([...maps, ...teamMaps, '투혼(에결)'])];
+  const allMaps = [...new Set([...maps, ...teamMaps])];
   const eng = app.engine(app.method, 'all');
   const R = id => eng.R.get(id) ?? 1000;
   if (d.kind === 'solo') { d.t1 = d.t1.slice(0, 1); d.t2 = d.t2.slice(0, 1); if (!d.sets.length) d.sets = [{ type: 'solo', map: maps[0], p1: '', p2: '', side: 0 }]; d.sets = d.sets.slice(0, 1); d.sets[0].p1 = d.t1[0] || ''; d.sets[0].p2 = d.t2[0] || ''; }
@@ -149,7 +149,7 @@ function renderForm(app, box) {
     }
     return `<div class="fset" style="display:grid;grid-template-columns:28px 130px minmax(0,1fr) minmax(0,1fr) 120px 32px;gap:8px;align-items:center;padding:8px 0;border-top:1px solid var(--line)">
       <span class="num mute">${i + 1}</span>
-      <select class="fld" data-map="${i}" aria-label="맵">${allMaps.map(m => `<option ${s.map === m ? 'selected' : ''}>${esc(m)}</option>`).join('')}</select>
+      <div style="display:flex;flex-direction:column;gap:4px"><select class="fld" data-map="${i}" aria-label="맵">${(allMaps.includes(s.map) ? allMaps : [s.map, ...allMaps]).map(m => `<option ${s.map === m ? 'selected' : ''}>${esc(m)}</option>`).join('')}</select>${d.kind === 'pro' ? `<button type="button" class="chip ace-chip${s.ace ? ' on' : ''}" data-ace="${i}" aria-pressed="${!!s.ace}" title="에이스 결정전 세트로 표시">${s.ace ? '✓ ' : ''}에결</button>` : ''}</div>
       <div style="display:flex;flex-direction:column;gap:4px">${A}<button ${pick(1)}>팀1 승</button></div>
       <div style="display:flex;flex-direction:column;gap:4px">${B}<button ${pick(2)}>팀2 승</button></div>
       <span class="small mute">예상 ${Math.round(e * 100)}:${100 - Math.round(e * 100)}</span>
@@ -157,6 +157,9 @@ function renderForm(app, box) {
     </div>`;
   };
   const w1 = d.sets.filter(s => s.side === 1).length, w2 = d.sets.filter(s => s.side === 2).length;
+  // 풀세트: 마지막 세트 전 스코어가 N:N(N≥3)이면 에결 체크 안내
+  const prev = d.sets.slice(0, -1), pw1 = prev.filter(s => s.side === 1).length, pw2 = prev.filter(s => s.side === 2).length;
+  const aceHint = d.kind === 'pro' && d.sets.length >= 7 && pw1 === pw2 && pw1 >= 3 && !d.sets.some(s => s.ace);
   const errors = validate(d);
   const dup = findDup(app, d);
 
@@ -165,6 +168,7 @@ function renderForm(app, box) {
       <label class="row small mute">날짜 <input type="date" class="fld" id="fDate" value="${d.date}" max="${todayKST()}"></label></div>
     <div class="grid2" style="gap:12px"><div><div class="small mute" style="margin-bottom:6px">${d.kind === 'solo' ? '선수 1' : '팀 1'}</div>${chips(1)}</div><div><div class="small mute" style="margin-bottom:6px">${d.kind === 'solo' ? '선수 2' : '팀 2'}</div>${chips(2)}</div></div>
     <div style="margin-top:14px">${d.sets.map(setRow).join('')}</div>
+    ${aceHint ? `<div class="note" style="margin-top:8px">${pw1}:${pw2} 다음 마지막 세트예요. 에이스 결정전이면 ${d.sets.length}세트의 <b>에결</b> 버튼을 눌러 주세요.</div>` : ''}
     ${d.kind === 'pro' ? `<div class="row" style="margin-top:8px"><button class="btn" data-addset="solo">+ 개인전 세트</button><button class="btn" data-addset="team">+ 팀전 세트</button></div>` : ''}
     <div class="row" style="justify-content:space-between;margin-top:16px;border-top:1px solid var(--line);padding-top:14px">
       <div class="row"><span class="mute small">스코어 자동 계산</span><b class="num" style="font-size:26px">${w1} : ${w2}</b></div>
@@ -216,13 +220,14 @@ function renderForm(app, box) {
     else st[k] = [...arr, id];
     rerender();
   });
+  box.querySelectorAll('[data-ace]').forEach(b => b.onclick = () => { const i = +b.dataset.ace, on = !d.sets[i].ace; d.sets.forEach(s => { s.ace = false; }); d.sets[i].ace = on; rerender(); });
   box.querySelectorAll('[data-win]').forEach(b => b.onclick = () => { const [i, side] = b.dataset.win.split('|'); d.sets[+i].side = +side; rerender(); });
   box.querySelectorAll('[data-del]').forEach(b => b.onclick = () => { d.sets.splice(+b.dataset.del, 1); rerender(); });
   box.querySelectorAll('[data-addset]').forEach(b => b.onclick = () => { const t = b.dataset.addset; const st = t === 'solo' ? { type: 'solo', map: maps[0], p1: '', p2: '', side: 0 } : { type: 'team', map: teamMaps.find(m => teamSize(m) === Math.min(d.t1.length, d.t2.length)) || teamMaps[0], t1: [], t2: [], side: 0 }; if (t === 'team') fitSet(d, st); d.sets.push(st); rerender(); });
   box.querySelector('#fConf').onchange = e => { d.confirmer = e.target.value; };
   box.querySelector('#fGo').onclick = async () => {
     const btn = box.querySelector('#fGo'); btn.disabled = true;
-    const sets = d.sets.map(s => s.type === 'solo' ? { map: s.map, p1: s.p1, p2: s.p2, winner: s.side === 1 ? s.p1 : s.p2, side: s.side } : { map: s.map, t1: s.t1, t2: s.t2, side: s.side });
+    const sets = d.sets.map(s => s.type === 'solo' ? { map: s.map, p1: s.p1, p2: s.p2, winner: s.side === 1 ? s.p1 : s.p2, side: s.side, ...(s.ace ? { ace: true } : {}) } : { map: s.map, t1: s.t1, t2: s.t2, side: s.side, ...(s.ace ? { ace: true } : {}) });
     try {
       const row = await store.insert('submissions', { match_date: d.date, kind: d.kind, team1: d.t1, team2: d.t2, sets, submitter: app.me, confirmer: d.confirmer || null, status: 'pending' });
       const admin = app.isAdmin();

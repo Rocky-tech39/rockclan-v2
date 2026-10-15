@@ -1,4 +1,4 @@
-import { C } from './util.js?v=20261015a';
+import { C } from './util.js?v=20261015b';
 
 async function rest(path) {
   const res = await fetch(`${C.READ_URL}/rest/v1/${path}`, {
@@ -32,7 +32,7 @@ export function normalize(rows) {
   let header = null;
   for (const r of rows) {
     const isTeam = Array.isArray(r.team1) && r.team1.length > 0;
-    const base = { id: r.id, date: r.match_date, seq: r.seq ?? 0, map: normMap(r.map), score: r.score || '', src: r.src || 'official', fixed: r.fixed || '' };
+    const base = { id: r.id, date: r.match_date, seq: r.seq ?? 0, map: normMap(r.map), score: r.score || '', src: r.src || 'official', fixed: r.fixed || '', ace: !!r.ace || (r.map || '').includes('에결') };
     if (r.map === 'Match' && isTeam) {
       const w = r.winner_arr || [];
       header = { ...base, kind: 'pro', t1: r.team1, t2: r.team2 || [], win1: w.some(x => r.team1.includes(x)), sets: [] };
@@ -88,8 +88,8 @@ export function submissionsToRows(subs, officialRows) {
         winner_arr: w1 > w2 ? s.team1 : s.team2, score: `${w1}:${w2}`, src: 'submitted' });
     }
     sets.forEach((x, i) => {
-      if (x.p1) rows.push({ id: `s-${s.id}-${i}`, match_date: s.match_date, seq: seq++, map: x.map, player1: x.p1, player2: x.p2, winner: x.winner, score: '', src: 'submitted' });
-      else rows.push({ id: `s-${s.id}-${i}`, match_date: s.match_date, seq: seq++, map: x.map, team1: x.t1, team2: x.t2, winner_arr: x.side === 1 ? x.t1 : x.t2, score: '', src: 'submitted' });
+      if (x.p1) rows.push({ id: `s-${s.id}-${i}`, match_date: s.match_date, seq: seq++, map: x.map, player1: x.p1, player2: x.p2, winner: x.winner, score: '', src: 'submitted', ace: !!x.ace });
+      else rows.push({ id: `s-${s.id}-${i}`, match_date: s.match_date, seq: seq++, map: x.map, team1: x.t1, team2: x.t2, winner_arr: x.side === 1 ? x.t1 : x.t2, score: '', src: 'submitted', ace: !!x.ace });
     });
   }
   return rows;

@@ -1,15 +1,15 @@
-import { C, esc, qs, go, ls, uid, seasonOf, currentSeason, todayKST, raceLabel } from './util.js?v=20261015a';
-import { loadOfficial, normalize, submissionsToRows, isConfirmed, isFix, isReg, applyFixes } from './data.js?v=20261015a';
-import { runEngine } from './rating.js?v=20261015a';
-import { store, isDemo } from './store.js?v=20261015a';
-import * as ranking from './v-ranking.js?v=20261015a';
-import * as matches from './v-matches.js?v=20261015a';
-import * as player from './v-player.js?v=20261015a';
-import * as analysis from './v-analysis.js?v=20261015a';
-import * as submit from './v-submit.js?v=20261015a';
-import * as board from './v-board.js?v=20261015a';
-import * as guide from './v-guide.js?v=20261015a';
-import * as tour from './v-tour.js?v=20261015a';
+import { C, esc, qs, go, ls, uid, seasonOf, currentSeason, todayKST, raceLabel } from './util.js?v=20261015b';
+import { loadOfficial, normalize, submissionsToRows, isConfirmed, isFix, isReg, applyFixes } from './data.js?v=20261015b';
+import { runEngine } from './rating.js?v=20261015b';
+import { store, isDemo } from './store.js?v=20261015b';
+import * as ranking from './v-ranking.js?v=20261015b';
+import * as matches from './v-matches.js?v=20261015b';
+import * as player from './v-player.js?v=20261015b';
+import * as analysis from './v-analysis.js?v=20261015b';
+import * as submit from './v-submit.js?v=20261015b';
+import * as board from './v-board.js?v=20261015b';
+import * as guide from './v-guide.js?v=20261015b';
+import * as tour from './v-tour.js?v=20261015b';
 
 const VIEWS = { ranking, matches, player, analysis, submit, board, guide, tour };
 const $ = s => document.querySelector(s);
@@ -41,6 +41,7 @@ const app = {
     return n >= 40 ? this.current : this.prevSeason(this.current);
   },
   rebuild() {
+    this.allSubs = (this.allSubs || []).filter(s => !(C.TEST_SUBMITTERS || []).includes(s.submitter) && !(isReg(s) && (C.TEST_PLAYERS || []).includes(s.sets.player.id)));
     this.regs = this.allSubs.filter(isReg).slice().sort((a, b) => (a.created_at || '').localeCompare(b.created_at || ''));
     this.pendingRegs = this.regs.filter(r => r.status === 'pending');
     for (const r of this.regs.filter(r => r.status === 'confirmed')) {
@@ -66,7 +67,7 @@ const app = {
   setMe(id) { this.me = id; ls.set('rc.me', id); updateMeBtn(); updateBadge(); toast(id ? `내 선수: ${id}` : '내 선수 해제'); route(); },
   pickMe() {
     const ids = [...this.players.keys()].filter(x => !C.HIDE_IDS.includes(x)).sort((a, b) => a.localeCompare(b));
-    modal(`<h3 id="modalTitle">내 선수 설정</h3><p class="mute small">이 기기에서 나를 누구로 표시할지 정합니다. 랭킹에서 내 위치, 결과 확인 요청, 의견 작성자에 쓰입니다. (베타 기간이라 로그인 없이 신뢰 기반으로 운영해요)</p>
+    modal(`<h3 id="modalTitle">내 선수 설정</h3><p class="mute small">이 기기에서 나를 누구로 표시할지 정합니다. 랭킹에서 내 위치, 결과 확인 요청, 의견 작성자에 쓰입니다. (로그인 없이 신뢰 기반으로 운영해요)</p>
       <label class="sr" for="meSel">선수</label><select id="meSel" class="fld" style="width:100%"><option value="">선택 안 함</option>${ids.map(x => `<option ${x === this.me ? 'selected' : ''}>${esc(x)}</option>`).join('')}</select>
       <div class="note small" style="margin-top:12px">목록에 내 아이디가 없나요? <button class="btn small" id="meNew" style="margin-left:6px">+ 새 선수 등록 신청</button><div class="mute" style="margin-top:4px">운영진이 승인하면 목록에 나타나요.</div></div>
       <div class="row" style="justify-content:flex-end;margin-top:14px"><button class="btn" data-close>닫기</button><button class="btn pri" id="meGo">저장</button></div>`,

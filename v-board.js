@@ -1,6 +1,6 @@
-import { esc, timeAgo, go } from './util.js?v=20261015a';
-import { store, isDemo } from './store.js?v=20261015a';
-import { CHANGELOG, DONE_POSTS, HELD_POSTS } from './changelog.js?v=20261015a';
+import { esc, timeAgo, go } from './util.js?v=20261015b';
+import { store, isDemo } from './store.js?v=20261015b';
+import { CHANGELOG, DONE_POSTS, HELD_POSTS } from './changelog.js?v=20261015b';
 
 export const SCREENS = { ranking: '랭킹', matches: '경기 기록', analysis: '전력 분석', player: '선수 프로필', submit: '결과 제출·확인', board: '의견 게시판', guide: '안내', etc: '기타·전체' };
 export const CATS = ['좋아요', '불편해요', '버그', '아이디어', '레이팅 로직', '기타'];
@@ -11,7 +11,7 @@ export async function render(app, el, p) {
   const set = (k, v) => { const o = Object.fromEntries(p); o[k] = v; go('board', o); };
   const tab = p.get('tab') || 'posts';
   const head = `<div class="head"><div><div class="eyebrow">FEEDBACK &amp; UPDATES</div><h1 class="title">의견 게시판</h1>
-    <div class="desc">${tab === 'log' ? '의견을 받아 사이트를 이렇게 고쳐 왔어요. 새로 올릴 때마다 여기에 기록합니다.' : 'v2 Beta에 대한 의견을 모읍니다. 공감(▲)이 많은 의견부터 반영할게요. 오른쪽 아래 <b>의견 남기기</b> 버튼은 어느 화면에서나 쓸 수 있어요.'}</div></div>
+    <div class="desc">${tab === 'log' ? '의견을 받아 사이트를 이렇게 고쳐 왔어요. 새로 올릴 때마다 여기에 기록합니다.' : 'v2에 대한 의견을 모읍니다. 공감(▲)이 많은 의견부터 반영할게요. 오른쪽 아래 <b>의견 남기기</b> 버튼은 어느 화면에서나 쓸 수 있어요.'}</div></div>
     <div class="row">${isDemo ? '<span class="tag warn">시연 모드</span>' : ''}<button class="btn pri" data-write>새 의견 쓰기</button></div></div>
     <div class="seg btabs" role="tablist"><button data-tab="posts" class="${tab === 'posts' ? 'on' : ''}">💬 의견</button><button data-tab="log" class="${tab === 'log' ? 'on' : ''}">🛠 업데이트 기록 <span class="ub">${CHANGELOG[0].date.slice(5).replace('-', '.')}</span></button></div>`;
   const bindHead = () => {
