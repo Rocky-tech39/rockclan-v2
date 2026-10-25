@@ -2,6 +2,9 @@
 // type: new(새 기능) / improve(개선) / fix(수정)
 // posts: 반영한 의견 게시판 글 id → 게시판에서 해당 글에 "반영완료" 표시
 export const CHANGELOG = [
+  { date: '2026-10-25', items: [
+    { type: 'fix', text: '결과 제출: 프로리그 한 팀에 5명 이상 넣을 수 없던 문제 (이제 팀당 8명까지)' }
+  ] },
   { date: '2026-10-15', items: [
     { type: 'new', text: '에이스 결정전 표시: 프로리그 결과 제출 때 세트마다 "에결" 버튼으로 선택 (맵과 상관없이), 3:3 이상 동점 뒤 마지막 세트면 안내 · 경기 기록에 "에결" 배지', by: 'Nangman', posts: ['cdd8c056-fa4a-4609-97f9-2e89486449ec'] },
     { type: 'improve', text: 'Beta 딱지 떼고 정식 v2로 · 테스트·예시로 넣었던 제출 기록 정리' }

@@ -1,7 +1,7 @@
-import { esc, fmtD, timeAgo, todayKST, expected, C } from './util.js?v=20261015b';
-import { store, isDemo } from './store.js?v=20261015b';
-import { isConfirmed } from './data.js?v=20261015b';
-import { soloOdds } from './rating.js?v=20261015b';
+import { esc, fmtD, timeAgo, todayKST, expected, C } from './util.js?v=20261025a';
+import { store, isDemo } from './store.js?v=20261025a';
+import { isConfirmed } from './data.js?v=20261025a';
+import { soloOdds } from './rating.js?v=20261025a';
 
 let draft = null;
 let focusTeam = null;
@@ -126,7 +126,7 @@ function renderForm(app, box) {
 
   const chips = (team) => {
     const arr = d['t' + team];
-    const max = d.kind === 'solo' ? 1 : 4;
+    const max = d.kind === 'solo' ? 1 : d.kind === 'team' ? 4 : 8; // 프로리그는 팀당 최대 8명
     return `<div class="row" style="background:var(--bg);border:1px solid var(--line2);border-radius:8px;padding:6px;min-height:46px;gap:6px">
       ${arr.map(x => `<button class="chip" data-rm="${team}|${esc(x)}" title="빼기">${esc(x)} ✕</button>`).join('')}
       ${arr.length < max ? `<div class="psearch"><input class="fld" data-add="${team}" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="+ 선수 이름 입력 (예: Ve)" aria-label="팀 ${team} 선수 검색해서 추가"><div class="psug" data-sug="${team}" hidden></div></div>` : ''}
@@ -180,7 +180,7 @@ function renderForm(app, box) {
     ${app.me && !d.t1.includes(app.me) && !d.t2.includes(app.me) && (d.t1.length || d.t2.length) ? `<div class="small" style="color:var(--warn);margin-top:6px">본인(${esc(app.me)})이 출전하지 않은 경기도 제출할 수 있지만, 확인은 두 팀 중 한 명이 해야 합니다.</div>` : ''}`;
 
   const rerender = () => renderForm(app, box);
-  box.querySelectorAll('[data-kind]').forEach(b => b.onclick = () => { const k = b.dataset.kind; draft = { ...newDraft(), kind: k, date: d.date, t1: k === 'solo' ? d.t1.slice(0, 1) : d.t1, t2: k === 'solo' ? d.t2.slice(0, 1) : d.t2 }; rerender(); });
+  box.querySelectorAll('[data-kind]').forEach(b => b.onclick = () => { const k = b.dataset.kind; draft = { ...newDraft(), kind: k, date: d.date, t1: d.t1.slice(0, k === 'solo' ? 1 : k === 'team' ? 4 : 8), t2: d.t2.slice(0, k === 'solo' ? 1 : k === 'team' ? 4 : 8) }; rerender(); });
   box.querySelector('#fDate').onchange = e => { d.date = e.target.value; rerender(); };
   box.querySelectorAll('[data-add]').forEach(inp => {
     const team = inp.dataset.add, sug = box.querySelector(`[data-sug="${team}"]`);
