@@ -1,4 +1,4 @@
-import { C } from './util.js?v=20261025a';
+import { C } from './util.js?v=20261102a';
 
 async function rest(path) {
   const res = await fetch(`${C.READ_URL}/rest/v1/${path}`, {
@@ -127,6 +127,8 @@ export function applyFixes(rows, fixes) {
     if (!e) { out.push(r); continue; }
     const n = { ...r, fixed: 'edit' };
     if (e.map) n.map = e.map;
+    // 날짜 변경: 옮긴 날의 기존 경기 뒤에 붙도록 순서값을 크게 (프로리그 세트 묶음 유지)
+    if (e.date) { n.match_date = e.date; n.seq = (n.seq ?? 0) + 1e9; }
     if (e.swap) {
       if (n.player1) n.winner = n.winner === n.player1 ? n.player2 : n.player1;
       else if (Array.isArray(n.team1)) { const w1 = (n.winner_arr || []).some(x => n.team1.includes(x)); n.winner_arr = w1 ? n.team2 : n.team1; }

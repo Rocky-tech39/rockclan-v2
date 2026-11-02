@@ -1,4 +1,4 @@
-import { C, tierIdx, expected, seasonOf } from './util.js?v=20261025a';
+import { C, tierIdx, expected, seasonOf } from './util.js?v=20261102a';
 
 // 한 경기 → 양쪽 선수 목록
 export const sides = m => m.kind === 'solo' ? [[m.p1], [m.p2]] : [m.t1, m.t2];
@@ -119,8 +119,10 @@ export function seasonTable(matches, eng, season, ctx, refDate) {
   }
   rows.sort((a, b) => b.r - a.r);
   // 7일 전 순위
-  const prevOrder = rows.filter(x => x.eligible).slice().sort((a, b) => (b.r - b.d7) - (a.r - a.d7)).map(x => x.id);
-  rows.filter(x => x.eligible).forEach((x, i) => { x.rank = i + 1; x.rankChg = prevOrder.indexOf(x.id) - i; });
+  // 랭킹 등록 조건(경기 수·상대 수)만 보고 순위를 매김. 휴면(일정 기간 경기 없음) 기준은 쓰지 않음
+  const ranked = rows.filter(x => x.eligible);
+  const prevOrder = ranked.slice().sort((a, b) => (b.r - b.d7) - (a.r - a.d7)).map(x => x.id);
+  ranked.forEach((x, i) => { x.rank = i + 1; x.rankChg = prevOrder.indexOf(x.id) - i; });
   return rows;
 }
 

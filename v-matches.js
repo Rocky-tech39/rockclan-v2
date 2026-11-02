@@ -1,7 +1,7 @@
-import { esc, fmtD, go, sign } from './util.js?v=20261025a';
-import { sides } from './rating.js?v=20261025a';
-import { store } from './store.js?v=20261025a';
-import { timeAgo } from './util.js?v=20261025a';
+import { esc, fmtD, go, sign, todayKST } from './util.js?v=20261102a';
+import { sides } from './rating.js?v=20261102a';
+import { store } from './store.js?v=20261102a';
+import { timeAgo } from './util.js?v=20261102a';
 
 export function render(app, el, p) {
   const eng = app.engine(app.method, 'all');
@@ -123,6 +123,7 @@ function openFix(app, m) {
   app.modal(`<h3 id="modalTitle">경기 기록 수정·삭제 요청</h3>
     <p class="mute small">${fmtD(m.date)} ${m.kind === 'pro' ? `프로리그 ${esc(m.t1.join('·'))} vs ${esc(m.t2.join('·'))}` : esc(label(m))} · 경기에 뛴 다른 선수 1명이 확인하면 v2에 반영됩니다(48시간 무응답 시 자동).</p>
     <label class="row" style="margin:10px 0;gap:8px;cursor:pointer"><input type="checkbox" id="fxAll" style="width:18px;height:18px;accent-color:var(--acc)"> <b>이 경기 전체 삭제</b> <span class="small mute">(잘못 입력됐거나 중복)</span></label>
+    <label class="row small" style="gap:8px;margin:4px 0 8px">경기 날짜 <input type="date" class="fld" id="fxDate" value="${esc(m.date)}" max="${todayKST()}" style="min-height:34px;padding:4px 8px"> <span class="mute">날짜가 틀렸으면 바꿔 주세요</span></label>
     <div id="fxRows">${rows.map((x, i) => `<div style="border-top:1px solid var(--line);padding:10px 0;display:flex;flex-direction:column;gap:6px">
       <div class="small"><b>${m.kind === 'pro' ? (i + 1) + '세트 · ' : ''}${esc(label(x))}</b> <span class="mute">· 기록상 승자 ${esc(winner(x))}</span></div>
       <div class="row" style="gap:12px">
@@ -150,6 +151,11 @@ function openFix(app, m) {
           if (Object.keys(e).length) edit[x.id] = e;
         });
         if (m.kind === 'pro' && (del.length || Object.keys(edit).length)) edit[m.id] = { ...(edit[m.id] || {}), recount: true };
+        const nd = md.querySelector('#fxDate').value;
+        if (nd && nd !== m.date) {
+          [m, ...rows].forEach(x => { edit[x.id] = { ...(edit[x.id] || {}), date: nd }; });
+          parts.unshift(`날짜 ${fmtD(m.date)} → ${fmtD(nd)}`);
+        }
       }
       if (!del.length && !Object.keys(edit).length) return app.toast('바꿀 내용을 선택해 주세요');
       const players = [...new Set(m.kind === 'pro' ? [...m.t1, ...m.t2] : sides(m).flat())];

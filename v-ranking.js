@@ -1,5 +1,5 @@
-import { C, esc, pct, sign, signColor, tierBadge, raceBadge, raceLabel, formPills, sparkline, sample, go, fmtD, TIERS, TIER_COLOR, addDays, todayKST } from './util.js?v=20261025a';
-import { seasonTable, proTable, sides, ALL_SEASON } from './rating.js?v=20261025a';
+import { C, esc, pct, sign, signColor, tierBadge, raceBadge, raceLabel, formPills, sparkline, sample, go, fmtD, TIERS, TIER_COLOR, addDays, todayKST } from './util.js?v=20261102a';
+import { seasonTable, proTable, sides, ALL_SEASON } from './rating.js?v=20261102a';
 
 export function render(app, el, p) {
   const allTime = p.get('season') === 'all';
@@ -44,7 +44,7 @@ export function render(app, el, p) {
   const eng = app.engine(method, mode, allTime);
   let rows = seasonTable(app.matches, eng, season, app, refDate);
   const nEvents = app.matches.filter(m => m.kind !== 'pro' && m.date >= season.start && m.date <= season.end && (mode === 'all' || m.kind === mode)).length;
-  const eligible = rows.filter(r => r.eligible && !(isCurrent && r.inactive));
+  const eligible = rows.filter(r => r.eligible);
   const prov = rows.filter(r => !r.eligible);
 
   // 하이라이트
@@ -106,7 +106,7 @@ export function render(app, el, p) {
 const wins = a => a.filter(Boolean).length;
 
 function row(r, i, sort, me) {
-  const rank = !r.eligible ? '–' : sort === 'skill' ? r.rank : i + 1;
+  const rank = !r.eligible || !r.rank ? '–' : sort === 'skill' ? r.rank : i + 1;
   const chg = r.eligible && sort === 'skill' ? (r.rankChg > 0 ? `<span class="up">▲${r.rankChg}</span>` : r.rankChg < 0 ? `<span class="down">▼${-r.rankChg}</span>` : '<span class="mute">–</span>') : '';
   const stk = Math.abs(r.streak) >= 2 ? (r.streak > 0 ? `${r.streak}연승` : `${-r.streak}연패`) : '';
   const sub = `<span class="m-rec"><b>${r.w}승 ${r.l}패</b> ${pct(r.w, r.games)}% · </span>` + [r.eligible ? '' : '배치중', stk, `<span class="d-only">${r.games}경기 · </span>상대 ${r.opps}명`].filter(Boolean).join(' · ');

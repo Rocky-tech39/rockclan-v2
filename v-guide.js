@@ -1,4 +1,4 @@
-import { C, TIERS, expected, esc } from './util.js?v=20261025a';
+import { C, TIERS, expected, esc } from './util.js?v=20261102a';
 
 export function render(app, el) {
   const P = C.V2;
@@ -12,7 +12,7 @@ export function render(app, el) {
         <li><b>경기마다 변동</b>: 새 점수 = 점수 + K × (결과 − 예상 승률). 개인전 K=${P.K_SOLO}, 팀전 K=${P.K_TEAM}(인원수로 나눔: 2:2가 4:4보다 크게 변동)</li>
         <li><b>배치 경기</b>: 처음 ${P.PROVISIONAL_GAMES}경기는 변동폭 ×${P.PROVISIONAL_MULT} — 빨리 제자리를 찾게</li>
         <li><b>소프트 리셋</b>: 시즌이 바뀌면 1000점으로 초기화하지 않고, 티어 기준점과의 차이를 ${Math.round(P.SOFT_RESET * 100)}%만 남김</li>
-        <li><b>랭킹 등록</b>: ${C.ELIGIBLE.GAMES}경기 + 서로 다른 상대 ${C.ELIGIBLE.OPPONENTS}명 이상. 진행 중 시즌은 ${C.ELIGIBLE.INACTIVE_DAYS}일간 경기가 없으면 숨김</li>
+        <li><b>랭킹 등록</b>: ${C.ELIGIBLE.GAMES}경기 + 서로 다른 상대 ${C.ELIGIBLE.OPPONENTS}명 이상</li>
         <li><b>중복 의심 경기</b>(같은 날 같은 구성·결과로 두 번 입력된 프로리그)는 점수 계산에서 제외</li>
       </ol></div>
     <div class="card"><h2>기존 ELO와 무엇이 다른가</h2>
