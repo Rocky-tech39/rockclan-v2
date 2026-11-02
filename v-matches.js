@@ -1,7 +1,7 @@
-import { esc, fmtD, go, sign, todayKST } from './util.js?v=20261102b';
-import { sides } from './rating.js?v=20261102b';
-import { store } from './store.js?v=20261102b';
-import { timeAgo } from './util.js?v=20261102b';
+import { esc, fmtD, go, sign, todayKST } from './util.js?v=20261102c';
+import { sides } from './rating.js?v=20261102c';
+import { store } from './store.js?v=20261102c';
+import { timeAgo } from './util.js?v=20261102c';
 
 export function render(app, el, p) {
   const eng = app.engine(app.method, 'all');
@@ -130,13 +130,19 @@ function openFix(app, m) {
     <div id="fxRows">${rows.map((x, i) => `<div style="border-top:1px solid var(--line);padding:10px 0;display:flex;flex-direction:column;gap:6px">
       <div class="small"><b>${m.kind === 'pro' ? (i + 1) + '세트 · ' : ''}${esc(label(x))}</b> <span class="mute">· 기록상 승자 ${esc(winner(x))}</span></div>
       <div class="row" style="gap:12px">
-        <label class="row small" style="gap:6px;cursor:pointer"><input type="checkbox" data-swap="${esc(x.id)}" style="width:16px;height:16px;accent-color:var(--acc)"> 승자 바꾸기</label>
+        <span class="row small" style="gap:6px">승자 <span class="seg" style="padding:2px">${[1, 2].map(sd => `<button type="button" class="${(x.win1 ? 1 : 2) === sd ? 'on' : ''}" data-win="${esc(x.id)}|${sd}" style="min-height:30px;padding:4px 10px">${esc(sides(x)[sd - 1].join('·'))}</button>`).join('')}</span></span>
         <label class="row small" style="gap:6px">맵 <select class="fld" data-map="${esc(x.id)}" style="min-height:34px;padding:4px 8px">${maps.map(mp => `<option ${mp === x.map ? 'selected' : ''}>${esc(mp)}</option>`).join('')}</select></label>
         ${m.kind === 'pro' ? `<label class="row small" style="gap:6px;cursor:pointer"><input type="checkbox" data-del="${esc(x.id)}" style="width:16px;height:16px;accent-color:var(--acc)"> 이 세트 삭제</label>` : ''}
       </div>${plRow(x)}</div>`).join('')}</div>
     <label class="lbl" style="margin-top:8px">사유 (필수)<textarea id="fxWhy" class="fld" maxlength="300" placeholder="예: 3세트 승자가 반대로 입력됐어요 / 같은 경기가 두 번 입력됐어요"></textarea></label>
     <div class="row" style="justify-content:flex-end;margin-top:12px"><button class="btn" data-close>취소</button><button class="btn pri" id="fxGo">요청 올리기</button></div>`, md => {
     const all = md.querySelector('#fxAll');
+    // 승자 고르기: 누른 쪽이 승자. 선수를 바꾸면 버튼 이름도 같이 바뀜
+    md.querySelectorAll('[data-win]').forEach(b => b.onclick = () => { const id = b.dataset.win.split('|').slice(0, -1).join('|'); md.querySelectorAll(`[data-win^="${CSS.escape(id + '|')}"]`).forEach(x => x.classList.toggle('on', x === b)); });
+    md.querySelectorAll('[data-pl]').forEach(s => s.onchange = () => {
+      const [id, side] = s.dataset.pl.split('|'); const names = [...md.querySelectorAll(`[data-pl^="${CSS.escape(id + '|' + side + '|')}"]`)].map(x => x.value).join('·');
+      const btn = md.querySelector(`[data-win="${CSS.escape(id + '|' + side)}"]`); if (btn) btn.textContent = names;
+    });
     all.onchange = () => { md.querySelector('#fxRows').style.opacity = all.checked ? .35 : 1; };
     md.querySelector('#fxGo').onclick = async () => {
       const reason = md.querySelector('#fxWhy').value.trim();
@@ -148,7 +154,8 @@ function openFix(app, m) {
           const pre = m.kind === 'pro' ? `${i + 1}세트 ` : '';
           if (md.querySelector(`[data-del="${CSS.escape(String(x.id))}"]`)?.checked) { del.push(x.id); parts.push(pre + '삭제'); return; }
           const e = {};
-          if (md.querySelector(`[data-swap="${CSS.escape(String(x.id))}"]`).checked) { e.swap = true; parts.push(pre + '승자 변경'); }
+          const ws = +md.querySelector(`[data-win^="${CSS.escape(String(x.id) + '|')}"].on`).dataset.win.split('|').pop();
+          if (ws !== (x.win1 ? 1 : 2)) { e.swap = true; parts.push(pre + `승자 → ${md.querySelector(`[data-win^="${CSS.escape(String(x.id) + '|')}"].on`).textContent}`); }
           // 선수 교체
           const [A, B] = sides(x);
           const pick = (side, arr) => arr.map((p, j) => md.querySelector(`[data-pl="${CSS.escape(String(x.id) + '|' + side + '|' + j)}"]`).value);

@@ -382,3 +382,7 @@ a.newtile:hover{border-color:var(--acc);box-shadow:0 4px 14px rgba(47,91,234,.12
 .tag.ace{background:#FFF1E6;color:#C2410C;border:1px solid #FDBA74;font-weight:700}
 .chip.ace-chip{min-height:28px;padding:2px 10px;font-size:12px;align-self:flex-start}
 .chip.ace-chip.on{background:#FFF1E6;color:#C2410C;border-color:#F97316}
+
+/* 수정 요청: 승자 고르기 */
+.seg button[data-win].on{background:var(--acc);color:#fff;font-weight:700}
+.seg button[data-win].on::before{content:"🏆 "}

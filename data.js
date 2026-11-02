@@ -1,4 +1,4 @@
-import { C } from './util.js?v=20261102b';
+import { C } from './util.js?v=20261102c';
 
 async function rest(path) {
   const res = await fetch(`${C.READ_URL}/rest/v1/${path}`, {
