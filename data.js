@@ -1,4 +1,4 @@
-import { C } from './util.js?v=20261102a';
+import { C } from './util.js?v=20261102b';
 
 async function rest(path) {
   const res = await fetch(`${C.READ_URL}/rest/v1/${path}`, {
@@ -129,6 +129,17 @@ export function applyFixes(rows, fixes) {
     if (e.map) n.map = e.map;
     // 날짜 변경: 옮긴 날의 기존 경기 뒤에 붙도록 순서값을 크게 (프로리그 세트 묶음 유지)
     if (e.date) { n.match_date = e.date; n.seq = (n.seq ?? 0) + 1e9; }
+    // 선수 교체: 승자는 같은 자리(팀1/팀2) 그대로 유지
+    if ((e.p1 || e.p2) && n.player1) {
+      const w1 = n.winner === n.player1;
+      if (e.p1) n.player1 = e.p1; if (e.p2) n.player2 = e.p2;
+      n.winner = w1 ? n.player1 : n.player2;
+    }
+    if ((e.t1 || e.t2) && Array.isArray(n.team1)) {
+      const w1 = (n.winner_arr || []).some(x => n.team1.includes(x));
+      if (e.t1) n.team1 = e.t1; if (e.t2) n.team2 = e.t2;
+      n.winner_arr = w1 ? n.team1 : n.team2;
+    }
     if (e.swap) {
       if (n.player1) n.winner = n.winner === n.player1 ? n.player2 : n.player1;
       else if (Array.isArray(n.team1)) { const w1 = (n.winner_arr || []).some(x => n.team1.includes(x)); n.winner_arr = w1 ? n.team2 : n.team1; }

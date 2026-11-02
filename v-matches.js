@@ -1,7 +1,7 @@
-import { esc, fmtD, go, sign, todayKST } from './util.js?v=20261102a';
-import { sides } from './rating.js?v=20261102a';
-import { store } from './store.js?v=20261102a';
-import { timeAgo } from './util.js?v=20261102a';
+import { esc, fmtD, go, sign, todayKST } from './util.js?v=20261102b';
+import { sides } from './rating.js?v=20261102b';
+import { store } from './store.js?v=20261102b';
+import { timeAgo } from './util.js?v=20261102b';
 
 export function render(app, el, p) {
   const eng = app.engine(app.method, 'all');
@@ -120,6 +120,9 @@ function openFix(app, m) {
   const maps = [...new Set([...(app.maps || []).map(x => x.map_name), '투혼', '폴리포이드', '폴스타', '녹아웃', '옥타곤', '애티튜드', '2:2생컨', '2:2투혼', '3:3헌터', '3:3생컨', '4:4헌터', '투혼(에결)'])];
   const label = x => x.kind === 'solo' ? `${x.p1} vs ${x.p2}` : `${x.t1.join('·')} vs ${x.t2.join('·')}`;
   const winner = x => x.kind === 'solo' ? (x.win1 ? x.p1 : x.p2) : (x.win1 ? x.t1 : x.t2).join('·');
+  const ids = [...app.players.keys()].sort((a, b) => a.localeCompare(b));
+  const psel = (x, side, idx, cur) => `<select class="fld" data-pl="${esc(x.id)}|${side}|${idx}" style="min-height:34px;padding:4px 6px;max-width:130px" aria-label="선수">${(ids.includes(cur) ? ids : [cur, ...ids]).map(p => `<option ${p === cur ? 'selected' : ''}>${esc(p)}</option>`).join('')}</select>`;
+  const plRow = x => { const [A, B] = sides(x); return `<div class="row small" style="gap:6px;flex-wrap:wrap"><span class="mute">선수</span>${A.map((p, i) => psel(x, 1, i, p)).join('')}<span class="mute">vs</span>${B.map((p, i) => psel(x, 2, i, p)).join('')}</div>`; };
   app.modal(`<h3 id="modalTitle">경기 기록 수정·삭제 요청</h3>
     <p class="mute small">${fmtD(m.date)} ${m.kind === 'pro' ? `프로리그 ${esc(m.t1.join('·'))} vs ${esc(m.t2.join('·'))}` : esc(label(m))} · 경기에 뛴 다른 선수 1명이 확인하면 v2에 반영됩니다(48시간 무응답 시 자동).</p>
     <label class="row" style="margin:10px 0;gap:8px;cursor:pointer"><input type="checkbox" id="fxAll" style="width:18px;height:18px;accent-color:var(--acc)"> <b>이 경기 전체 삭제</b> <span class="small mute">(잘못 입력됐거나 중복)</span></label>
@@ -130,7 +133,7 @@ function openFix(app, m) {
         <label class="row small" style="gap:6px;cursor:pointer"><input type="checkbox" data-swap="${esc(x.id)}" style="width:16px;height:16px;accent-color:var(--acc)"> 승자 바꾸기</label>
         <label class="row small" style="gap:6px">맵 <select class="fld" data-map="${esc(x.id)}" style="min-height:34px;padding:4px 8px">${maps.map(mp => `<option ${mp === x.map ? 'selected' : ''}>${esc(mp)}</option>`).join('')}</select></label>
         ${m.kind === 'pro' ? `<label class="row small" style="gap:6px;cursor:pointer"><input type="checkbox" data-del="${esc(x.id)}" style="width:16px;height:16px;accent-color:var(--acc)"> 이 세트 삭제</label>` : ''}
-      </div></div>`).join('')}</div>
+      </div>${plRow(x)}</div>`).join('')}</div>
     <label class="lbl" style="margin-top:8px">사유 (필수)<textarea id="fxWhy" class="fld" maxlength="300" placeholder="예: 3세트 승자가 반대로 입력됐어요 / 같은 경기가 두 번 입력됐어요"></textarea></label>
     <div class="row" style="justify-content:flex-end;margin-top:12px"><button class="btn" data-close>취소</button><button class="btn pri" id="fxGo">요청 올리기</button></div>`, md => {
     const all = md.querySelector('#fxAll');
@@ -138,7 +141,7 @@ function openFix(app, m) {
     md.querySelector('#fxGo').onclick = async () => {
       const reason = md.querySelector('#fxWhy').value.trim();
       if (!reason) return app.toast('사유를 적어 주세요');
-      const del = [], edit = {}, parts = [];
+      const del = [], edit = {}, parts = [], final = []; let bad = '';
       if (all.checked) { del.push(m.id, ...rows.filter(x => x.id !== m.id).map(x => x.id)); parts.push('경기 전체 삭제'); }
       else {
         rows.forEach((x, i) => {
@@ -146,10 +149,32 @@ function openFix(app, m) {
           if (md.querySelector(`[data-del="${CSS.escape(String(x.id))}"]`)?.checked) { del.push(x.id); parts.push(pre + '삭제'); return; }
           const e = {};
           if (md.querySelector(`[data-swap="${CSS.escape(String(x.id))}"]`).checked) { e.swap = true; parts.push(pre + '승자 변경'); }
+          // 선수 교체
+          const [A, B] = sides(x);
+          const pick = (side, arr) => arr.map((p, j) => md.querySelector(`[data-pl="${CSS.escape(String(x.id) + '|' + side + '|' + j)}"]`).value);
+          const nA = pick(1, A), nB = pick(2, B);
+          if (nA.join() !== A.join() || nB.join() !== B.join()) {
+            if (new Set([...nA, ...nB]).size !== nA.length + nB.length) { bad = `${pre}같은 선수가 두 번 들어가 있어요`; return; }
+            if (x.kind === 'solo') { if (nA[0] !== A[0]) e.p1 = nA[0]; if (nB[0] !== B[0]) e.p2 = nB[0]; }
+            else { if (nA.join() !== A.join()) e.t1 = nA; if (nB.join() !== B.join()) e.t2 = nB; }
+            [...A.map((p, j) => [p, nA[j]]), ...B.map((p, j) => [p, nB[j]])].filter(([o, n]) => o !== n).forEach(([o, n]) => parts.push(`${pre}선수 ${o} → ${n}`));
+          }
+          final.push([nA, nB]);
           const mp = md.querySelector(`[data-map="${CSS.escape(String(x.id))}"]`).value;
           if (mp !== x.map) { e.map = mp; parts.push(pre + `맵 → ${mp}`); }
           if (Object.keys(e).length) edit[x.id] = e;
         });
+        if (bad) return app.toast(bad);
+        // 프로리그: 세트에 새로 들어간 선수를 팀 명단에도 반영 (세트에서 빠진 선수는 명단에서 제외)
+        if (m.kind === 'pro' && final.length) {
+          const s1 = new Set(final.flatMap(f => f[0])), s2 = new Set(final.flatMap(f => f[1]));
+          const allOld1 = new Set(rows.flatMap(x => sides(x)[0])), allOld2 = new Set(rows.flatMap(x => sides(x)[1]));
+          const t1 = [...new Set([...m.t1.filter(p => s1.has(p) || !allOld1.has(p)), ...s1])];
+          const t2 = [...new Set([...m.t2.filter(p => s2.has(p) || !allOld2.has(p)), ...s2])];
+          const both = t1.filter(p => t2.includes(p));
+          if (both.length) return app.toast(`${both.join(', ')} 선수가 양 팀에 모두 들어가 있어요`);
+          if (t1.join() !== m.t1.join() || t2.join() !== m.t2.join()) edit[m.id] = { ...(edit[m.id] || {}), t1, t2 };
+        }
         if (m.kind === 'pro' && (del.length || Object.keys(edit).length)) edit[m.id] = { ...(edit[m.id] || {}), recount: true };
         const nd = md.querySelector('#fxDate').value;
         if (nd && nd !== m.date) {
