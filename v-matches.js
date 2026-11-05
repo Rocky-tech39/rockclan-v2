@@ -1,7 +1,7 @@
-import { esc, fmtD, go, sign, todayKST } from './util.js?v=20261102c';
-import { sides } from './rating.js?v=20261102c';
-import { store } from './store.js?v=20261102c';
-import { timeAgo } from './util.js?v=20261102c';
+import { esc, fmtD, go, sign, todayKST } from './util.js?v=20261106a';
+import { sides } from './rating.js?v=20261106a';
+import { store } from './store.js?v=20261106a';
+import { timeAgo } from './util.js?v=20261106a';
 
 export function render(app, el, p) {
   const eng = app.engine(app.method, 'all');
@@ -131,7 +131,7 @@ function openFix(app, m) {
       <div class="small"><b>${m.kind === 'pro' ? (i + 1) + '세트 · ' : ''}${esc(label(x))}</b> <span class="mute">· 기록상 승자 ${esc(winner(x))}</span></div>
       <div class="row" style="gap:12px">
         <span class="row small" style="gap:6px">승자 <span class="seg" style="padding:2px">${[1, 2].map(sd => `<button type="button" class="${(x.win1 ? 1 : 2) === sd ? 'on' : ''}" data-win="${esc(x.id)}|${sd}" style="min-height:30px;padding:4px 10px">${esc(sides(x)[sd - 1].join('·'))}</button>`).join('')}</span></span>
-        <label class="row small" style="gap:6px">맵 <select class="fld" data-map="${esc(x.id)}" style="min-height:34px;padding:4px 8px">${maps.map(mp => `<option ${mp === x.map ? 'selected' : ''}>${esc(mp)}</option>`).join('')}</select></label>
+        <label class="row small" style="gap:6px">맵 <select class="fld" data-map="${esc(x.id)}" style="min-height:34px;padding:4px 8px">${(maps.includes(x.map) ? maps : [x.map, ...maps]).map(mp => `<option ${mp === x.map ? 'selected' : ''}>${esc(mp)}</option>`).join('')}</select></label>
         ${m.kind === 'pro' ? `<label class="row small" style="gap:6px;cursor:pointer"><input type="checkbox" data-del="${esc(x.id)}" style="width:16px;height:16px;accent-color:var(--acc)"> 이 세트 삭제</label>` : ''}
       </div>${plRow(x)}</div>`).join('')}</div>
     <label class="lbl" style="margin-top:8px">사유 (필수)<textarea id="fxWhy" class="fld" maxlength="300" placeholder="예: 3세트 승자가 반대로 입력됐어요 / 같은 경기가 두 번 입력됐어요"></textarea></label>

@@ -1,15 +1,15 @@
-import { C, esc, qs, go, ls, uid, seasonOf, currentSeason, todayKST, raceLabel } from './util.js?v=20261102c';
-import { loadOfficial, normalize, submissionsToRows, isConfirmed, isFix, isReg, applyFixes } from './data.js?v=20261102c';
-import { runEngine } from './rating.js?v=20261102c';
-import { store, isDemo } from './store.js?v=20261102c';
-import * as ranking from './v-ranking.js?v=20261102c';
-import * as matches from './v-matches.js?v=20261102c';
-import * as player from './v-player.js?v=20261102c';
-import * as analysis from './v-analysis.js?v=20261102c';
-import * as submit from './v-submit.js?v=20261102c';
-import * as board from './v-board.js?v=20261102c';
-import * as guide from './v-guide.js?v=20261102c';
-import * as tour from './v-tour.js?v=20261102c';
+import { C, esc, qs, go, ls, uid, seasonOf, currentSeason, todayKST, raceLabel } from './util.js?v=20261106a';
+import { loadOfficial, normalize, submissionsToRows, isConfirmed, isFix, isReg, applyFixes } from './data.js?v=20261106a';
+import { runEngine } from './rating.js?v=20261106a';
+import { store, isDemo } from './store.js?v=20261106a';
+import * as ranking from './v-ranking.js?v=20261106a';
+import * as matches from './v-matches.js?v=20261106a';
+import * as player from './v-player.js?v=20261106a';
+import * as analysis from './v-analysis.js?v=20261106a';
+import * as submit from './v-submit.js?v=20261106a';
+import * as board from './v-board.js?v=20261106a';
+import * as guide from './v-guide.js?v=20261106a';
+import * as tour from './v-tour.js?v=20261106a';
 
 const VIEWS = { ranking, matches, player, analysis, submit, board, guide, tour };
 const $ = s => document.querySelector(s);

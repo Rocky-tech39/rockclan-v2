@@ -1,5 +1,34 @@
-import { esc, pct, sign, signColor, tierBadge, raceBadge, raceLabel, TIER_COLOR, RACE_KO, fmtD, go, expected, formPills, todayKST, C, TIERS } from './util.js?v=20261102c';
-import { seasonTable, sides, soloOdds } from './rating.js?v=20261102c';
+import { esc, pct, sign, signColor, tierBadge, raceBadge, raceLabel, TIER_COLOR, RACE_KO, fmtD, go, expected, formPills, todayKST, C, TIERS } from './util.js?v=20261106a';
+import { seasonTable, sides, soloOdds } from './rating.js?v=20261106a';
+
+// 라이벌 끝장전 (rock-summer-league/rival.html, 같은 쓰기 DB의 rival_matches)
+const RIVAL_PAGE = 'https://rocky-tech39.github.io/rock-summer-league/rival.html';
+let rivalCache = null;
+async function loadRival() {
+  if (rivalCache) return rivalCache;
+  try {
+    const r = await fetch(`${C.WRITE_URL}/rest/v1/rival_matches?select=*&order=round`, { headers: { apikey: C.WRITE_KEY }, cache: 'no-store' });
+    rivalCache = r.ok ? await r.json() : [];
+  } catch { rivalCache = []; }
+  return rivalCache;
+}
+async function renderRival(el, id) {
+  const box = el.querySelector('#rivalBox'); if (!box) return;
+  const mine = (await loadRival()).filter(m => m.a === id || m.b === id);
+  if (!mine.length || !el.contains(box)) return;
+  let w = 0, l = 0;
+  const rows = mine.map(m => {
+    const meA = m.a === id, my = meA ? m.sa : m.sb, op = meA ? m.sb : m.sa, opp = meA ? m.b : m.a, n = m.sa + m.sb;
+    if (n === 7) my > op ? w++ : l++;
+    const st = n === 7 ? (my > op ? '<span class="tag ok">승</span>' : '<span class="tag mute">패</span>') : n ? `<span class="tag warn">진행 중 ${n}/7</span>` : '<span class="tag mute">예정</span>';
+    const link = /^https?:\/\//.test(m.link || '') ? `<a class="btn" href="${esc(m.link)}" target="_blank" rel="noopener" style="min-height:32px;padding:4px 10px;font-size:13px">▶ 다시보기</a>` : '';
+    return `<div class="row" style="justify-content:space-between;gap:10px;padding:8px 0;border-top:1px solid var(--line)">
+      <div class="row" style="gap:10px"><b class="num mute">R${m.round}</b><span>vs <a href="#/player?id=${encodeURIComponent(opp)}"><b>${esc(opp)}</b></a></span></div>
+      <div class="row" style="gap:8px"><b class="num" style="font-size:18px">${my} : ${op}</b>${st}${link}</div></div>`;
+  }).join('');
+  box.innerHTML = `<section class="card"><div class="row" style="justify-content:space-between"><h2>⚔️ 라이벌 끝장전 <span class="mute">7판 전부 · ${w}승 ${l}패</span></h2><a class="btn" href="${RIVAL_PAGE}" target="_blank" rel="noopener">끝장전 페이지 →</a></div>${rows}
+    <div class="small mute" style="margin-top:8px">끝난 라운드는 개인전 7경기로 레이팅에 반영돼요 (맵 기록 없이 스코어만)</div></section>`;
+}
 
 export function render(app, el, p) {
   const id = p.get('id') || (p.get('pick') ? '' : app.me);
@@ -63,6 +92,7 @@ export function render(app, el, p) {
       <div><div class="k">전적 <span class="mute">전체</span></div><div class="v">${me.w}-${me.l}</div><div class="kv-sub">개인전 <b>${kw.solo[0]}-${kw.solo[1]}</b> · 팀전 <b>${kw.team[0]}-${kw.team[1]}</b></div></div>
       <div><div class="k">승률 <span class="mute">전체</span></div><div class="v">${pct(me.w, me.games)}%</div><div class="kv-sub">개인전 <b>${pct(kw.solo[0], kw.solo[0] + kw.solo[1])}%</b> · 팀전 <b>${pct(kw.team[0], kw.team[0] + kw.team[1])}%</b></div></div></div>` : `<div class="mute">${esc(season.label)} 경기 기록이 없습니다</div>`}
   </section>
+  <div id="rivalBox"></div>
   ${me ? `
   <section class="grid2" style="grid-template-columns:minmax(0,2fr) minmax(0,1fr)">
     <div class="card"><h2>레이팅 추이 <span class="mute">${esc(season.label)} · ${hist.length}경기 · 시작 ${Math.round(hist[0].pre)} → ${Math.round(me.r)} <span style="color:${signColor(me.r - hist[0].pre)}">${sign(me.r - hist[0].pre)}</span></span></h2>${chart}</div>
@@ -98,6 +128,7 @@ export function render(app, el, p) {
   </section>` : ''}
   </div>`;
 
+  renderRival(el, id);
   el.querySelector('#pSeason').onchange = e2 => set('season', e2.target.value);
   const pv = el.querySelector('#pVs'); if (pv) pv.onchange = () => set('vs', pv.value);
   el.querySelector('[data-pick]').onclick = () => go('player', { pick: 1 });
