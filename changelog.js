@@ -3,6 +3,7 @@
 // posts: 반영한 의견 게시판 글 id → 게시판에서 해당 글에 "반영완료" 표시
 export const CHANGELOG = [
   { date: '2026-11-06', items: [
+    { type: 'improve', text: '클랜 이벤트: K.E.D.(우승 하나·준우승 머머리), Summer 다이아·왕관 리그(우승 Strive·준우승 순대·3위 달선) 시상대 추가' },
     { type: 'new', text: '클랜 이벤트 메뉴: 라이벌 끝장전 · K.E.D. League · Summer League 페이지를 한곳에서 (끝장전은 실시간 A조/B조 스코어), 랭킹 위에 끝장전 진행 띠' }
   ] },
   { date: '2026-11-06', items: [

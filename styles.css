@@ -407,3 +407,10 @@ a.newtile:hover{border-color:var(--acc);box-shadow:0 4px 14px rgba(47,91,234,.12
 .evs-t{font-weight:900}.evs-s{color:var(--mute,#6b7385)}.evs-s b{color:var(--text)}
 .evs-go{margin-left:auto;font-weight:800;color:var(--acc)}
 @media(max-width:640px){.evs-go{margin-left:0}}
+.evcard{cursor:pointer}
+.evpod{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.evp{display:flex;flex-direction:column;align-items:center;gap:1px;padding:8px 4px;border-radius:12px;background:var(--card2,#f4f7fd);border:1px solid var(--line);color:var(--text);text-decoration:none;text-align:center;min-width:0}
+.evp:hover{border-color:var(--acc)}
+.evp .m{font-size:22px;line-height:1.1}.evp .r{font-size:11px;font-weight:800;color:var(--mute,#6b7385)}
+.evp b{font-size:14px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.evp small{font-size:11px;color:var(--mute,#6b7385)}
+.evp.p1{background:linear-gradient(180deg,#fff6d6,#fff);border-color:#f0c84a}
