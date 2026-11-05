@@ -386,3 +386,24 @@ a.newtile:hover{border-color:var(--acc);box-shadow:0 4px 14px rgba(47,91,234,.12
 /* 수정 요청: 승자 고르기 */
 .seg button[data-win].on{background:var(--acc);color:#fff;font-weight:700}
 .seg button[data-win].on::before{content:"🏆 "}
+/* 클랜 이벤트 */
+.evgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+@media(max-width:980px){.evgrid{grid-template-columns:1fr}}
+.evcard{display:flex;flex-direction:column;background:var(--card);border:1px solid var(--line);border-radius:18px;overflow:hidden;color:var(--text);text-decoration:none;box-shadow:0 6px 20px rgba(16,24,40,.06);transition:transform .15s,box-shadow .15s}
+.evcard:hover{transform:translateY(-3px);box-shadow:0 12px 28px rgba(16,24,40,.12)}
+.evtop{display:flex;align-items:center;gap:12px;padding:18px 18px;color:#fff}
+.evemoji{font-size:38px;line-height:1;filter:drop-shadow(0 2px 6px rgba(0,0,0,.25))}
+.even{font-size:11px;font-weight:800;letter-spacing:3px;opacity:.9}
+.evtitle{font-size:22px;font-weight:900;margin-top:2px;text-shadow:0 2px 6px rgba(0,0,0,.2)}
+.evbody{padding:14px 18px 18px;display:flex;flex-direction:column;gap:10px;flex:1}
+.evbody p{font-size:14px;line-height:1.6;color:var(--text2,#4a5468);margin:0}
+.evbody ul{margin:0;padding-left:18px;font-size:13px;color:var(--mute,#6b7385);line-height:1.7}
+.evgo{margin-top:auto;font-weight:800;color:var(--acc);font-size:14px}
+.evlive{background:var(--card2,#f4f7fd);border-radius:12px;padding:10px 12px}
+.evscore{font:800 22px var(--num);}
+.evscore .a{color:#ff5a36}.evscore .b{color:#2f6fe0}
+.evstrip{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:0 0 14px;padding:10px 16px;border-radius:14px;background:linear-gradient(90deg,#fff1ec,#eef3ff);border:1px solid #ffd2c2;color:var(--text);text-decoration:none;font-size:14px}
+.evstrip[hidden]{display:none}
+.evs-t{font-weight:900}.evs-s{color:var(--mute,#6b7385)}.evs-s b{color:var(--text)}
+.evs-go{margin-left:auto;font-weight:800;color:var(--acc)}
+@media(max-width:640px){.evs-go{margin-left:0}}

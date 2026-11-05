@@ -1,7 +1,9 @@
-import { C, esc, pct, sign, signColor, tierBadge, raceBadge, raceLabel, formPills, sparkline, sample, go, fmtD, TIERS, TIER_COLOR, addDays, todayKST } from './util.js?v=20261106a';
-import { seasonTable, proTable, sides, ALL_SEASON } from './rating.js?v=20261106a';
+import { rivalStatus } from './v-events.js?v=20261106b';
+import { C, esc, pct, sign, signColor, tierBadge, raceBadge, raceLabel, formPills, sparkline, sample, go, fmtD, TIERS, TIER_COLOR, addDays, todayKST } from './util.js?v=20261106b';
+import { seasonTable, proTable, sides, ALL_SEASON } from './rating.js?v=20261106b';
 
 export function render(app, el, p) {
+  setTimeout(() => fillEvStrip(el), 0);
   const allTime = p.get('season') === 'all';
   const season = allTime ? ALL_SEASON : app.seasonFromParam(p.get('season'));
   const mode = p.get('mode') || 'all';
@@ -77,7 +79,7 @@ export function render(app, el, p) {
   const podium = eligible.slice(0, 3);
   const medal = ['#C99A06', '#7C8796', '#B0723A'];
 
-  el.innerHTML = head + `<div class="stack">
+  el.innerHTML = head + `<a class="evstrip" id="evStrip" href="#/events" hidden></a><div class="stack">
     ${earlyNote}
     ${podium.length ? `<section class="podium">${podium.map((r, i) => `<a href="#/player?id=${encodeURIComponent(r.id)}">
       <div class="row" style="justify-content:space-between"><b class="num" style="color:${medal[i]}">#${i + 1}</b><span class="tag" style="color:${TIER_COLOR[r.tier]};border:1px solid ${TIER_COLOR[r.tier]}">${esc(r.tier)}</span></div>
@@ -176,4 +178,12 @@ function bind(el, set, app) {
     let t; q.oninput = () => { clearTimeout(t); t = setTimeout(() => { window.__rkQFocus = true; set('q', q.value); }, 350); };
   }
   const sm2 = el.querySelector('[data-act="setme"]'); if (sm2 && app) sm2.onclick = () => app.pickMe();
+}
+
+// 랭킹 위 이벤트 띠: 진행 중인 라이벌 끝장전 현황
+async function fillEvStrip(el) {
+  const a = el.querySelector('#evStrip'); if (!a) return;
+  const s = await rivalStatus(); if (!s || !el.contains(a)) return;
+  a.innerHTML = `<span class="evs-t">⚔️ 라이벌 끝장전 진행 중</span><span class="evs-s">A조 <b>${s.ra}</b> : <b>${s.rb}</b> B조 · ${s.fin}/${s.total}라운드</span><span class="evs-go">클랜 이벤트 →</span>`;
+  a.hidden = false;
 }
