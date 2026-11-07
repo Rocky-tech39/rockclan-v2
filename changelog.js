@@ -3,8 +3,9 @@
 // posts: 반영한 의견 게시판 글 id → 게시판에서 해당 글에 "반영완료" 표시
 export const CHANGELOG = [
   { date: '2026-11-07', items: [
-    { type: 'fix', text: '지난 시즌 랭킹·경기 기록에서 선수를 누르면 그 시즌 기록으로 열리게 (전에는 항상 현재 시즌으로 열림)', by: 'Pang' },
-    { type: 'improve', text: '라이벌 끝장전 바뀐 매치업 반영: 남은 3대진 → 새 5대진 (총 13라운드)', by: 'Pang' }
+    { type: 'fix', text: '지난 시즌 랭킹·경기 기록에서 선수를 누르면 그 시즌 기록으로 열리게 (전에는 항상 현재 시즌으로 열림)', by: 'Pang', posts: ['94aba616-2c39-448d-af96-73713bf38706'] },
+    { type: 'improve', text: '라이벌 끝장전 바뀐 매치업 반영: 남은 3대진 → 새 5대진 (총 13라운드)', by: 'Pang', posts: ['72214bf0-7247-4db1-aa2a-2f78bc91b87c'] },
+    { type: 'new', text: '라이벌 끝장전: 운영진이 페이지에서 경기 추가·삭제·선수 변경 가능' }
   ] },
   { date: '2026-11-06', items: [
     { type: 'improve', text: '운영진에 IN 추가 (Rocky·MiSTY·Strive·Pang·Friend·Veeny·IN)' }
