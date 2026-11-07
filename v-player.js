@@ -1,5 +1,5 @@
-import { esc, pct, sign, signColor, tierBadge, raceBadge, raceLabel, TIER_COLOR, RACE_KO, fmtD, go, expected, formPills, todayKST, C, TIERS } from './util.js?v=20261106d';
-import { seasonTable, sides, soloOdds } from './rating.js?v=20261106d';
+import { esc, pct, sign, signColor, tierBadge, raceBadge, raceLabel, TIER_COLOR, RACE_KO, fmtD, go, expected, formPills, todayKST, C, TIERS , seasonLinks } from './util.js?v=20261107a';
+import { seasonTable, sides, soloOdds } from './rating.js?v=20261107a';
 
 // 라이벌 끝장전 (rock-summer-league/rival.html, 같은 쓰기 DB의 rival_matches)
 const RIVAL_PAGE = 'https://rocky-tech39.github.io/rock-summer-league/rival.html';
@@ -123,11 +123,12 @@ export function render(app, el, p) {
     <div class="gl small mute" style="border-top:0"><span>날짜</span><span></span><span>상대</span><span class="c-map">맵</span><span class="c-p">경기 전 승리 확률</span><span style="text-align:right">변동</span><span class="c-r" style="text-align:right">레이팅</span></div>
     ${recent.map(h => { const m = evById.get(h.mid); if (!m) return ''; const ev = eng.events.get(m.id); const [A, B] = sides(m); const mineA = A.includes(id); const other = mineA ? B : A; const team = (mineA ? A : B).filter(x => x !== id);
       const pw = Math.round((mineA ? ev.e : 1 - ev.e) * 100);
-      return `<div class="gl"><span class="num mute">${fmtD(h.date)}</span>${formPills([h.win])}<span>${other.map(x => `<a href="#/player?id=${encodeURIComponent(x)}" style="color:var(--text)">${esc(x)}</a>`).join(' · ')}${team.length ? `<span class="small mute"> (with ${team.map(esc).join(', ')})</span>` : ''}</span><span class="c-map" style="color:var(--text2)">${esc(m.map)}</span>
+      return `<div class="gl"><span class="num mute">${fmtD(h.date)}</span>${formPills([h.win])}<span>${other.map(x => `<a href="#/player?id=${encodeURIComponent(x)}&season=${season.key}" style="color:var(--text)">${esc(x)}</a>`).join(' · ')}${team.length ? `<span class="small mute"> (with ${team.map(esc).join(', ')})</span>` : ''}</span><span class="c-map" style="color:var(--text2)">${esc(m.map)}</span>
         <span class="c-p pbar"><span class="bar"><i style="width:${pw}%"></i></span><span>${pw}%</span></span><span class="num" style="text-align:right;font-weight:700;color:${signColor(h.d)}">${sign(h.d, 1)}</span><span class="c-r num" style="text-align:right">${Math.round(h.r)}</span></div>`; }).join('')}
   </section>` : ''}
   </div>`;
 
+  seasonLinks(el, season.key);
   renderRival(el, id);
   el.querySelector('#pSeason').onchange = e2 => set('season', e2.target.value);
   const pv = el.querySelector('#pVs'); if (pv) pv.onchange = () => set('vs', pv.value);

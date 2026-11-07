@@ -77,3 +77,9 @@ export function timeAgo(iso) {
   if (s < 60) return '방금'; if (s < 3600) return Math.floor(s / 60) + '분 전';
   if (s < 86400) return Math.floor(s / 3600) + '시간 전'; return Math.floor(s / 86400) + '일 전';
 }
+
+// 선수 링크에 시즌을 붙여, 지난 시즌 화면에서 누르면 그 시즌 기록으로 열리게
+export function seasonLinks(root, key) {
+  if (!root || !key) return;
+  root.querySelectorAll('a[href^="#/player?id="]').forEach(a => { const h = a.getAttribute('href'); if (!/[?&]season=/.test(h)) a.setAttribute('href', h + '&season=' + encodeURIComponent(key)); });
+}

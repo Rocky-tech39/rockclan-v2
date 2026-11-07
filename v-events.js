@@ -1,12 +1,12 @@
-import { esc, C } from './util.js?v=20261106d';
+import { esc, C } from './util.js?v=20261107a';
 
 // 클랜 이벤트 모음 — 각 행사 페이지로 연결 (라이벌 끝장전만 ELO 반영)
 const BASE = 'https://rocky-tech39.github.io/rock-summer-league/';
 export const EVENTS = [
   {
     key: 'rival', title: '라이벌 끝장전', en: 'RIVAL FINAL', emoji: '⚔️', url: BASE + 'rival.html', status: 'live',
-    desc: '프로리그에서 팽팽했던 맞수끼리 7판을 전부 붙는 끝장전. 클랜원 투표로 대진을 정하고 A조 vs B조 11라운드로 진행 중.',
-    points: ['A조 vs B조 11라운드 · 라운드마다 7판 전부', '라운드별 스코어 · 방송 다시보기', '대진별 상대 전적·관전 포인트'],
+    desc: '프로리그에서 팽팽했던 맞수끼리 7판을 전부 붙는 끝장전. 클랜원 투표로 대진을 정하고 A조 vs B조 13라운드로 진행 중.',
+    points: ['A조 vs B조 13라운드 · 라운드마다 7판 전부', '라운드별 스코어 · 방송 다시보기', '대진별 상대 전적·관전 포인트'],
     elo: true, grad: 'linear-gradient(135deg,#ff5a36,#2f6fe0)'
   },
   {

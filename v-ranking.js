@@ -1,11 +1,12 @@
-import { rivalStatus } from './v-events.js?v=20261106d';
-import { C, esc, pct, sign, signColor, tierBadge, raceBadge, raceLabel, formPills, sparkline, sample, go, fmtD, TIERS, TIER_COLOR, addDays, todayKST } from './util.js?v=20261106d';
-import { seasonTable, proTable, sides, ALL_SEASON } from './rating.js?v=20261106d';
+import { rivalStatus } from './v-events.js?v=20261107a';
+import { C, esc, pct, sign, signColor, tierBadge, raceBadge, raceLabel, formPills, sparkline, sample, go, fmtD, TIERS, TIER_COLOR, addDays, todayKST, seasonLinks } from './util.js?v=20261107a';
+import { seasonTable, proTable, sides, ALL_SEASON } from './rating.js?v=20261107a';
 
 export function render(app, el, p) {
   setTimeout(() => fillEvStrip(el), 0);
   const allTime = p.get('season') === 'all';
   const season = allTime ? ALL_SEASON : app.seasonFromParam(p.get('season'));
+  if (!allTime) setTimeout(() => seasonLinks(el, season.key), 0);
   const mode = p.get('mode') || 'all';
   const method = p.get('method') || app.method;
   const sort = p.get('sort') || 'skill';

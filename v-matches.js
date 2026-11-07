@@ -1,7 +1,7 @@
-import { esc, fmtD, go, sign, todayKST } from './util.js?v=20261106d';
-import { sides } from './rating.js?v=20261106d';
-import { store } from './store.js?v=20261106d';
-import { timeAgo } from './util.js?v=20261106d';
+import { esc, fmtD, go, sign, todayKST, seasonOf } from './util.js?v=20261107a';
+import { sides } from './rating.js?v=20261107a';
+import { store } from './store.js?v=20261107a';
+import { timeAgo } from './util.js?v=20261107a';
 
 export function render(app, el, p) {
   const eng = app.engine(app.method, 'all');
@@ -48,7 +48,7 @@ export function render(app, el, p) {
     <div class="days">${shown.map(d => `<button class="day ${d === date ? 'on' : ''}" data-day="${d}"><b>${fmtD(d)}</b><span>${counts.get(d) || 0}경기</span></button>`).join('')}</div>
     ${dayGames.length ? `<div class="grid3">
       ${up && up.pw < 0.4 ? `<div class="tile" style="background:var(--infobg);border-color:var(--infoline)"><div class="k" style="color:var(--info)">오늘의 이변</div><div class="v" style="font-size:17px">${esc(up.m.win1 ? up.m.p1 : up.m.p2)}, 승리확률 ${Math.round(up.pw * 100)}%로 ${esc(up.m.win1 ? up.m.p2 : up.m.p1)} 격파</div><div class="s">${esc(up.m.map)} · <span class="num">${sign(eng.events.get(up.m.id).delta[up.m.win1 ? up.m.p1 : up.m.p2], 1)}</span></div></div>` : `<div class="tile"><div class="k">오늘의 이변</div><div class="v" style="font-size:17px">큰 이변 없음</div><div class="s">승리확률 40% 미만 승리가 없었어요</div></div>`}
-      ${best ? `<a class="tile" href="#/player?id=${encodeURIComponent(best[0])}"><div class="k">오늘의 MVP</div><div class="v" style="font-size:17px">${esc(best[0])} <span class="up num">${sign(best[1], 1)}</span></div><div class="s">이날 레이팅 상승 1위</div></a>` : ''}
+      ${best ? `<a class="tile" href="#/player?id=${encodeURIComponent(best[0])}${seasonOf(date) ? '&season=' + seasonOf(date).key : ''}"><div class="k">오늘의 MVP</div><div class="v" style="font-size:17px">${esc(best[0])} <span class="up num">${sign(best[1], 1)}</span></div><div class="s">이날 레이팅 상승 1위</div></a>` : ''}
       <div class="tile"><div class="k">이날 요약</div><div class="v num" style="font-size:17px">${pros.length ? `프로리그 ${pros.length}매치 · ` : ''}${dayGames.length}경기</div><div class="s">${dups ? `중복 의심 ${dups}건 · 점수 계산에서 제외` : '중복 의심 없음'}</div></div>
     </div>` : ''}`}
     ${list.map(m => card(app, eng, m, !!q)).join('') || '<div class="empty">경기가 없습니다</div>'}
@@ -66,7 +66,7 @@ export function render(app, el, p) {
   el.querySelectorAll('[data-toggle]').forEach(b => b.onclick = () => { const t = el.querySelector('#' + b.dataset.toggle); t.hidden = !t.hidden; b.textContent = t.hidden ? '세트 보기 ▾' : '접기 ▴'; });
 }
 
-const P = id => `<a href="#/player?id=${encodeURIComponent(id)}" style="color:inherit">${esc(id)}</a>`;
+const P = (id, d) => { const se = d && seasonOf(d); return `<a href="#/player?id=${encodeURIComponent(id)}${se ? '&season=' + se.key : ''}" style="color:inherit">${esc(id)}</a>`; };
 
 function setRow(eng, s, i) {
   const ev = eng.events.get(s.id);
@@ -76,9 +76,9 @@ function setRow(eng, s, i) {
   const d = ev ? Math.abs(ev.delta[A[0]]) : 0;
   return `<div class="set">
     <span class="num mute">${i + 1}</span><span class="c-map" style="color:var(--text2)">${esc(s.map)}</span>
-    <span class="a ${s.win1 ? 'win' : 'lose'}">${s.ace ? '<span class="tag ace">에결</span> ' : ''}${upA ? '<span class="tag info">이변</span> ' : ''}${A.map(P).join(' · ')}</span>
+    <span class="a ${s.win1 ? 'win' : 'lose'}">${s.ace ? '<span class="tag ace">에결</span> ' : ''}${upA ? '<span class="tag info">이변</span> ' : ''}${A.map(x => P(x, s.date)).join(' · ')}</span>
     <div class="pbar duo"><span class="pa${pa > 50 ? ' fav' : ''}" style="text-align:right">${pa}</span><div class="bar"><i class="t1" style="width:${pa}%"></i><i class="t2"></i></div><span class="pb${pa < 50 ? ' fav' : ''}">${100 - pa}</span></div>
-    <span class="${!s.win1 ? 'win' : 'lose'}">${B.map(P).join(' · ')}${upB ? ' <span class="tag info">이변</span>' : ''}</span>
+    <span class="${!s.win1 ? 'win' : 'lose'}">${B.map(x => P(x, s.date)).join(' · ')}${upB ? ' <span class="tag info">이변</span>' : ''}</span>
     <span class="num" style="text-align:right;color:var(--text2)">±${d.toFixed(1)}</span></div>`;
 }
 
@@ -91,9 +91,9 @@ function card(app, eng, m, showDate) {
       <div class="mhead"><div class="row"><span class="tag acc">프로리그</span><span class="mute small">${showDate ? fmtD(m.date) + ' · ' : ''}${m.sets.length}세트</span>
         ${dupOf ? '<span class="tag warn">중복 의심 · 같은 날 같은 구성·결과 기록이 이미 있음</span>' : ''}${m.src === 'submitted' ? '<span class="tag ok">제출 반영</span>' : ''}${fixTag(app, m)}</div>
         <div class="row">${fixBtn(app, m)}${m.sets.length ? `<button class="btn" data-toggle="s-${m.id}" style="min-height:34px;padding:4px 12px">${dupOf ? '세트 보기 ▾' : '접기 ▴'}</button>` : ''}</div></div>
-      <div class="mscore"><div class="${m.win1 ? 'win' : 'lose'}"><div class="small mute">TEAM 1</div>${m.t1.map(P).join(' · ')}</div>
+      <div class="mscore"><div class="${m.win1 ? 'win' : 'lose'}"><div class="small mute">TEAM 1</div>${m.t1.map(x => P(x, m.date)).join(' · ')}</div>
         <div class="s num">${esc(sc1)} <span style="color:var(--mute2)">:</span> ${esc(sc2)}</div>
-        <div class="${!m.win1 ? 'win' : 'lose'}" style="text-align:right"><div class="small mute">TEAM 2</div>${m.t2.map(P).join(' · ')}</div></div>
+        <div class="${!m.win1 ? 'win' : 'lose'}" style="text-align:right"><div class="small mute">TEAM 2</div>${m.t2.map(x => P(x, m.date)).join(' · ')}</div></div>
       <div id="s-${m.id}" ${dupOf ? 'hidden' : ''}>
         <div class="set small mute" style="padding-top:6px;padding-bottom:6px"><span>세트</span><span class="c-map">맵</span><span class="a" style="color:#2F5BEA;font-weight:600">Team 1</span><span class="pbar" style="justify-content:center">경기 전 승리 확률</span><span style="color:#E5531F;font-weight:600">Team 2</span><span style="text-align:right">변동</span></div>
         ${m.sets.map((s, i) => setRow(eng, s, i)).join('')}
