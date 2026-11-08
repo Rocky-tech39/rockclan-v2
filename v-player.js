@@ -1,5 +1,5 @@
-import { esc, pct, sign, signColor, tierBadge, raceBadge, raceLabel, TIER_COLOR, RACE_KO, fmtD, go, expected, formPills, todayKST, C, TIERS , seasonLinks } from './util.js?v=20261107b';
-import { seasonTable, sides, soloOdds } from './rating.js?v=20261107b';
+import { esc, pct, sign, signColor, tierBadge, raceBadge, raceLabel, TIER_COLOR, RACE_KO, fmtD, go, expected, formPills, todayKST, C, TIERS , seasonLinks } from './util.js?v=20261109a';
+import { seasonTable, sides, soloOdds } from './rating.js?v=20261109a';
 
 // 라이벌 끝장전 (rock-summer-league/rival.html, 같은 쓰기 DB의 rival_matches)
 const RIVAL_PAGE = 'https://rocky-tech39.github.io/rock-summer-league/rival.html';

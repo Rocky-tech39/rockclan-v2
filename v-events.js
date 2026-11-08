@@ -1,4 +1,4 @@
-import { esc, C } from './util.js?v=20261107b';
+import { esc, C } from './util.js?v=20261109a';
 
 // 클랜 이벤트 모음 — 각 행사 페이지로 연결 (라이벌 끝장전만 ELO 반영)
 const BASE = 'https://rocky-tech39.github.io/rock-summer-league/';

@@ -1,4 +1,4 @@
-import { C } from './util.js?v=20261107b';
+import { C } from './util.js?v=20261109a';
 
 async function rest(path) {
   const res = await fetch(`${C.READ_URL}/rest/v1/${path}`, {
@@ -110,14 +110,13 @@ export const isFix = s => s && s.sets && !Array.isArray(s.sets) && s.sets.fix;
 // 신규 선수 등록도 submissions에 저장: sets = { player: { id, race, tier } }, team1 = [id]
 export const isReg = s => s && s.sets && !Array.isArray(s.sets) && s.sets.player && s.sets.player.id;
 
+// 확정된 수정 요청을 올린 순서대로 하나씩 적용 (나중 요청은 앞 요청이 반영된 기록을 기준으로 만든 것)
 export function applyFixes(rows, fixes) {
-  const del = new Set(), edit = new Map();
-  for (const f of fixes) {
-    if (!isConfirmed(f)) continue;
-    const fx = f.sets.fix;
-    (fx.del || []).forEach(id => del.add(String(id)));
-    Object.entries(fx.edit || {}).forEach(([id, e]) => edit.set(String(id), e));
-  }
+  const fs = fixes.filter(isConfirmed).slice().sort((a, b) => (a.created_at || '').localeCompare(b.created_at || ''));
+  return fs.reduce((cur, f) => applyFix(cur, f.sets.fix), rows);
+}
+function applyFix(rows, fx) {
+  const del = new Set((fx.del || []).map(String)), edit = new Map(Object.entries(fx.edit || {}).map(([id, e]) => [String(id), e]));
   if (!del.size && !edit.size) return rows;
   const out = [];
   for (const r of rows) {
@@ -129,6 +128,8 @@ export function applyFixes(rows, fixes) {
     if (e.map) n.map = e.map;
     // 날짜 변경: 옮긴 날의 기존 경기 뒤에 붙도록 순서값을 크게 (프로리그 세트 묶음 유지)
     if (e.date) { n.match_date = e.date; n.seq = (n.seq ?? 0) + 1e9; }
+    // 같은 날 경기 순서 변경: 요청에 계산해 둔 순서값으로 (프로리그는 헤더·세트가 함께 이동)
+    if (typeof e.seq === 'number') n.seq = e.seq;
     // 선수 교체: 승자는 같은 자리(팀1/팀2) 그대로 유지
     if ((e.p1 || e.p2) && n.player1) {
       const w1 = n.winner === n.player1;

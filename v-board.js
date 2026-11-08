@@ -1,17 +1,20 @@
-import { esc, timeAgo, go } from './util.js?v=20261107b';
-import { store, isDemo } from './store.js?v=20261107b';
-import { CHANGELOG, DONE_POSTS, HELD_POSTS } from './changelog.js?v=20261107b';
+import { esc, timeAgo, go } from './util.js?v=20261109a';
+import { store, isDemo } from './store.js?v=20261109a';
+import { CHANGELOG, DONE_POSTS, HELD_POSTS } from './changelog.js?v=20261109a';
 
 export const SCREENS = { ranking: '랭킹', matches: '경기 기록', analysis: '전력 분석', player: '선수 프로필', submit: '결과 제출·확인', board: '의견 게시판', guide: '안내', etc: '기타·전체' };
 export const CATS = ['좋아요', '불편해요', '버그', '아이디어', '레이팅 로직', '기타'];
+// 날짜 표기: 올해면 11.03, 아니면 25.11.03 (한국 시간 기준)
+const ymd = iso => { const d = new Date(iso), y = d.getFullYear(), m = String(d.getMonth() + 1).padStart(2, '0'), dd = String(d.getDate()).padStart(2, '0'); return (y === new Date().getFullYear() ? '' : String(y).slice(2) + '.') + m + '.' + dd; };
+const md = s => s.slice(5).replace('-', '.');
 const STATUS_TAG = { '접수': 'mute', '검토중': 'info', '반영예정': 'acc', '반영완료': 'ok', '보류': 'mute' };
 
 export async function render(app, el, p) {
-  const screen = p.get('screen') || '', cat = p.get('cat') || '', sort = p.get('sort') || 'hot';
+  const screen = p.get('screen') || '', cat = p.get('cat') || '', sort = p.get('sort') || 'new';
   const set = (k, v) => { const o = Object.fromEntries(p); o[k] = v; go('board', o); };
   const tab = p.get('tab') || 'posts';
   const head = `<div class="head"><div><div class="eyebrow">FEEDBACK &amp; UPDATES</div><h1 class="title">의견 게시판</h1>
-    <div class="desc">${tab === 'log' ? '의견을 받아 사이트를 이렇게 고쳐 왔어요. 새로 올릴 때마다 여기에 기록합니다.' : 'v2에 대한 의견을 모읍니다. 공감(▲)이 많은 의견부터 반영할게요. 오른쪽 아래 <b>의견 남기기</b> 버튼은 어느 화면에서나 쓸 수 있어요.'}</div></div>
+    <div class="desc">${tab === 'log' ? '의견을 받아 사이트를 이렇게 고쳐 왔어요. 새로 올릴 때마다 여기에 기록합니다.' : 'v2에 대한 의견을 모읍니다. 최신 글이 위에 오고, 공감(▲)이 많은 의견부터 반영할게요. 오른쪽 아래 <b>의견 남기기</b> 버튼은 어느 화면에서나 쓸 수 있어요.'}</div></div>
     <div class="row">${isDemo ? '<span class="tag warn">시연 모드</span>' : ''}<button class="btn pri" data-write>새 의견 쓰기</button></div></div>
     <div class="seg btabs" role="tablist"><button data-tab="posts" class="${tab === 'posts' ? 'on' : ''}">💬 의견</button><button data-tab="log" class="${tab === 'log' ? 'on' : ''}">🛠 업데이트 기록 <span class="ub">${CHANGELOG[0].date.slice(5).replace('-', '.')}</span></button></div>`;
   const bindHead = () => {
@@ -43,7 +46,7 @@ export async function render(app, el, p) {
     <div class="row">
       <select class="fld" id="bScreen" aria-label="화면"><option value="">모든 화면</option>${Object.entries(SCREENS).map(([k, v]) => `<option value="${k}" ${screen === k ? 'selected' : ''}>${v}</option>`).join('')}</select>
       <select class="fld" id="bCat" aria-label="분류"><option value="">모든 분류</option>${CATS.map(c => `<option ${cat === c ? 'selected' : ''}>${c}</option>`).join('')}</select>
-      <div class="seg"><button data-sort="hot" class="${sort === 'hot' ? 'on' : ''}">공감순</button><button data-sort="new" class="${sort === 'new' ? 'on' : ''}">최신순</button></div>
+      <div class="seg"><button data-sort="new" class="${sort === 'new' ? 'on' : ''}">최신순</button><button data-sort="hot" class="${sort === 'hot' ? 'on' : ''}">공감순</button></div>
       <span class="small mute">${list.length}개 의견</span>
     </div>
     ${list.map(x => {
@@ -52,10 +55,10 @@ export async function render(app, el, p) {
       return `<article class="post" id="post-${x.id}">
         <button class="vote ${mine.has(x.id) ? 'on' : ''}" data-vote="${x.id}" aria-label="공감 ${vc.get(x.id) || 0}">▲<b class="num">${vc.get(x.id) || 0}</b></button>
         <div style="min-width:0">
-          <div class="row small" style="margin-bottom:6px"><span class="tag acc">${esc(SCREENS[x.screen] || x.screen || '기타')}</span><span class="tag info">${esc(x.category)}</span><span class="tag ${STATUS_TAG[st(x)] || 'mute'}">${esc(st(x))}</span>${DONE_POSTS.has(x.id) ? `<a class="small" href="#/board?tab=log">${DONE_POSTS.get(x.id).slice(5).replace('-', '.')} 업데이트 →</a>` : ''}${HELD_POSTS[x.id] ? `<span class="small mute">${esc(HELD_POSTS[x.id])}</span>` : ''}<span class="mute">${esc(x.author)} · ${timeAgo(x.created_at)}</span></div>
+          <div class="row small" style="margin-bottom:6px"><span class="tag acc">${esc(SCREENS[x.screen] || x.screen || '기타')}</span><span class="tag info">${esc(x.category)}</span><span class="tag ${STATUS_TAG[st(x)] || 'mute'}">${esc(st(x))}</span>${DONE_POSTS.has(x.id) ? `<a class="small" href="#/board?tab=log" title="${esc(DONE_POSTS.get(x.id))} 업데이트">✅ ${md(DONE_POSTS.get(x.id))} 반영 →</a>` : ''}${HELD_POSTS[x.id] ? `<span class="small mute">${esc(HELD_POSTS[x.id])}</span>` : ''}<span class="mute" title="${esc(new Date(x.created_at).toLocaleString('ko-KR'))}">${esc(x.author)} · ${ymd(x.created_at)} 작성 · ${timeAgo(x.created_at)}</span></div>
           <div class="body">${esc(x.body)}</div>
           <button class="btn" data-open="${x.id}" style="margin-top:10px;min-height:32px;padding:4px 12px;font-size:13px">댓글 ${cs.length}${isOpen ? ' ▴' : ' ▾'}</button>
-          ${isOpen ? `<div style="margin-top:8px">${cs.map(c => `<div class="cmt"><b>${esc(c.author)}</b> <span class="small mute">${timeAgo(c.created_at)}</span><br>${esc(c.body)}</div>`).join('')}
+          ${isOpen ? `<div style="margin-top:8px">${cs.map(c => `<div class="cmt"><b>${esc(c.author)}</b> <span class="small mute">${ymd(c.created_at)} · ${timeAgo(c.created_at)}</span><br>${esc(c.body)}</div>`).join('')}
             <div class="row" style="margin-top:8px;flex-wrap:nowrap"><label class="sr" for="c-${x.id}">댓글</label><input class="fld" id="c-${x.id}" maxlength="1000" placeholder="댓글 달기" style="flex:1"><button class="btn pri" data-cmt="${x.id}">등록</button></div></div>` : ''}
         </div></article>`;
     }).join('') || `<div class="empty">아직 의견이 없습니다. 첫 의견을 남겨 주세요!</div>`}

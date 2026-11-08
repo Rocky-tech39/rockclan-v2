@@ -1,6 +1,6 @@
-import { rivalStatus } from './v-events.js?v=20261107b';
-import { C, esc, pct, sign, signColor, tierBadge, raceBadge, raceLabel, formPills, sparkline, sample, go, fmtD, TIERS, TIER_COLOR, addDays, todayKST, seasonLinks } from './util.js?v=20261107b';
-import { seasonTable, proTable, sides, ALL_SEASON } from './rating.js?v=20261107b';
+import { rivalStatus } from './v-events.js?v=20261109a';
+import { C, esc, pct, sign, signColor, tierBadge, raceBadge, raceLabel, formPills, sparkline, sample, go, fmtD, TIERS, TIER_COLOR, addDays, todayKST, seasonLinks } from './util.js?v=20261109a';
+import { seasonTable, proTable, sides, ALL_SEASON } from './rating.js?v=20261109a';
 
 export function render(app, el, p) {
   setTimeout(() => fillEvStrip(el), 0);

@@ -1,7 +1,7 @@
-import { esc, fmtD, go, sign, todayKST, seasonOf } from './util.js?v=20261107b';
-import { sides } from './rating.js?v=20261107b';
-import { store } from './store.js?v=20261107b';
-import { timeAgo } from './util.js?v=20261107b';
+import { esc, fmtD, go, sign, todayKST, seasonOf } from './util.js?v=20261109a';
+import { sides } from './rating.js?v=20261109a';
+import { store } from './store.js?v=20261109a';
+import { timeAgo } from './util.js?v=20261109a';
 
 export function render(app, el, p) {
   const eng = app.engine(app.method, 'all');
@@ -122,11 +122,19 @@ function openFix(app, m) {
   const winner = x => x.kind === 'solo' ? (x.win1 ? x.p1 : x.p2) : (x.win1 ? x.t1 : x.t2).join('·');
   const ids = [...app.players.keys()].sort((a, b) => a.localeCompare(b));
   const psel = (x, side, idx, cur) => `<select class="fld" data-pl="${esc(x.id)}|${side}|${idx}" style="min-height:34px;padding:4px 6px;max-width:130px" aria-label="선수">${(ids.includes(cur) ? ids : [cur, ...ids]).map(p => `<option ${p === cur ? 'selected' : ''}>${esc(p)}</option>`).join('')}</select>`;
+  // 같은 날 경기 순서: 프로리그는 헤더+세트를 한 묶음으로
+  const unitRows = x => x.kind === 'pro' ? [x, ...x.sets] : [x];
+  const lo = x => Math.min(...unitRows(x).map(r => r.seq ?? 0)), hi = x => Math.max(...unitRows(x).map(r => r.seq ?? 0));
+  const day = app.matches.filter(x => x.date === m.date && !x.parent).sort((a, b) => lo(a) - lo(b));
+  const curPos = day.findIndex(x => x.id === m.id) + 1;
+  const uLabel = x => x.kind === 'pro' ? `프로리그 ${x.t1.join('·')} vs ${x.t2.join('·')}` : label(x);
   const plRow = x => { const [A, B] = sides(x); return `<div class="row small" style="gap:6px;flex-wrap:wrap"><span class="mute">선수</span>${A.map((p, i) => psel(x, 1, i, p)).join('')}<span class="mute">vs</span>${B.map((p, i) => psel(x, 2, i, p)).join('')}</div>`; };
   app.modal(`<h3 id="modalTitle">경기 기록 수정·삭제 요청</h3>
     <p class="mute small">${fmtD(m.date)} ${m.kind === 'pro' ? `프로리그 ${esc(m.t1.join('·'))} vs ${esc(m.t2.join('·'))}` : esc(label(m))} · 경기에 뛴 다른 선수 1명이 확인하면 v2에 반영됩니다(48시간 무응답 시 자동).</p>
     <label class="row" style="margin:10px 0;gap:8px;cursor:pointer"><input type="checkbox" id="fxAll" style="width:18px;height:18px;accent-color:var(--acc)"> <b>이 경기 전체 삭제</b> <span class="small mute">(잘못 입력됐거나 중복)</span></label>
     <label class="row small" style="gap:8px;margin:4px 0 8px">경기 날짜 <input type="date" class="fld" id="fxDate" value="${esc(m.date)}" max="${todayKST()}" style="min-height:34px;padding:4px 8px"> <span class="mute">날짜가 틀렸으면 바꿔 주세요</span></label>
+    ${day.length > 1 && curPos ? `<div id="fxOrdBox" style="margin:0 0 8px"><label class="row small" style="gap:8px">그날 경기 순서 <select class="fld" id="fxOrd" style="min-height:34px;padding:4px 8px">${day.map((_, k) => `<option value="${k + 1}" ${k + 1 === curPos ? 'selected' : ''}>${k + 1}번째${k + 1 === curPos ? ' (지금)' : ''}</option>`).join('')}</select> <span class="mute">같은 날 순서대로 레이팅이 계산돼요</span></label>
+      <ol class="small mute" style="margin:6px 0 0;padding-left:22px">${day.map(x => `<li ${x.id === m.id ? 'style="color:var(--text);font-weight:700"' : ''}>${esc(uLabel(x))}${x.kind === 'pro' ? ` (${x.sets.length}세트)` : ''}</li>`).join('')}</ol></div>` : ''}
     <div id="fxRows">${rows.map((x, i) => `<div style="border-top:1px solid var(--line);padding:10px 0;display:flex;flex-direction:column;gap:6px">
       <div class="small"><b>${m.kind === 'pro' ? (i + 1) + '세트 · ' : ''}${esc(label(x))}</b> <span class="mute">· 기록상 승자 ${esc(winner(x))}</span></div>
       <div class="row" style="gap:12px">
@@ -143,6 +151,8 @@ function openFix(app, m) {
       const [id, side] = s.dataset.pl.split('|'); const names = [...md.querySelectorAll(`[data-pl^="${CSS.escape(id + '|' + side + '|')}"]`)].map(x => x.value).join('·');
       const btn = md.querySelector(`[data-win="${CSS.escape(id + '|' + side)}"]`); if (btn) btn.textContent = names;
     });
+    const ord = md.querySelector('#fxOrd'), dt = md.querySelector('#fxDate');
+    if (ord) dt.addEventListener('change', () => { const moved = dt.value && dt.value !== m.date; ord.disabled = moved; md.querySelector('#fxOrdBox').style.opacity = moved ? .4 : 1; if (moved) ord.value = curPos; });
     all.onchange = () => { md.querySelector('#fxRows').style.opacity = all.checked ? .35 : 1; };
     md.querySelector('#fxGo').onclick = async () => {
       const reason = md.querySelector('#fxWhy').value.trim();
@@ -189,6 +199,15 @@ function openFix(app, m) {
           parts.unshift(`날짜 ${fmtD(m.date)} → ${fmtD(nd)}`);
         }
       }
+        // 순서 변경: 새 자리 앞뒤 경기의 순서값 사이로 묶음 전체를 넣음
+        const np = ord && !ord.disabled ? +ord.value : curPos;
+        if (np !== curPos && !all.checked) {
+          const others = day.filter(x => x.id !== m.id), prev = others[np - 2], next = others[np - 1];
+          const a = prev ? hi(prev) : lo(next) - 1, b = next ? lo(next) : hi(prev) + 1;
+          const us = unitRows(m).slice().sort((x, y) => (x.seq ?? 0) - (y.seq ?? 0));
+          us.forEach((x, i) => { edit[x.id] = { ...(edit[x.id] || {}), seq: a + (b - a) * (i + 1) / (us.length + 1) }; });
+          parts.push(`그날 순서 ${curPos}번째 → ${np}번째`);
+        }
       if (!del.length && !Object.keys(edit).length) return app.toast('바꿀 내용을 선택해 주세요');
       const players = [...new Set(m.kind === 'pro' ? [...m.t1, ...m.t2] : sides(m).flat())];
       const btn = md.querySelector('#fxGo'); btn.disabled = true;
