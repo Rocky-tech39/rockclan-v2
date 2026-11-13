@@ -1,4 +1,4 @@
-import { C } from './util.js?v=20261109a';
+import { C } from './util.js?v=20261113a';
 
 async function rest(path) {
   const res = await fetch(`${C.READ_URL}/rest/v1/${path}`, {
@@ -77,7 +77,9 @@ export function submissionsToRows(subs, officialRows) {
   const offKey = new Set(officialRows.filter(r => r.player1).map(r => `${r.match_date}|${[r.player1, r.player2].sort()}|${r.winner}`));
   const rows = [];
   let seq = 1e7;
-  for (const s of subs) {
+  // 같은 날 여러 경기는 제출한 순서(먼저 올린 경기 먼저)로 레이팅 계산 — 목록이 최신순으로 와도 오래된 것부터
+  const ordered = subs.slice().sort((a, b) => (a.created_at || '').localeCompare(b.created_at || ''));
+  for (const s of ordered) {
     if (!isConfirmed(s)) continue;
     const sets = s.sets || [];
     const soloKeys = sets.filter(x => x.p1).map(x => `${s.match_date}|${[x.p1, x.p2].sort()}|${x.winner}`);

@@ -1,7 +1,7 @@
-import { esc, fmtD, timeAgo, todayKST, expected, C } from './util.js?v=20261109a';
-import { store, isDemo } from './store.js?v=20261109a';
-import { isConfirmed } from './data.js?v=20261109a';
-import { soloOdds } from './rating.js?v=20261109a';
+import { esc, fmtD, timeAgo, todayKST, expected, C } from './util.js?v=20261113a';
+import { store, isDemo } from './store.js?v=20261113a';
+import { isConfirmed } from './data.js?v=20261113a';
+import { soloOdds } from './rating.js?v=20261113a';
 
 let draft = null;
 let focusTeam = null;
